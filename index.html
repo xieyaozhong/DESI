@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="水光數域是一場可互動的數學探索：從波的干涉、李薩如軌道、對數螺旋，到 Mandelbrot 無限邊界。"
+    />
+    <meta name="theme-color" content="#020a12" />
+    <meta property="og:title" content="DESI — 水光數域" />
+    <meta
+      property="og:description"
+      content="改變一個數字，看波紋如何成為軌道、螺旋與無限。"
+    />
+    <meta property="og:type" content="website" />
+    <title>DESI — 水光數域</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="./script.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">跳到主要內容</a>
+
+    <canvas id="ambient-canvas" aria-hidden="true"></canvas>
+    <div class="atmosphere" aria-hidden="true"></div>
+    <div class="grain" aria-hidden="true"></div>
+    <div class="hud-frame" aria-hidden="true">
+      <span class="corner corner-tl"></span>
+      <span class="corner corner-tr"></span>
+      <span class="corner corner-bl"></span>
+      <span class="corner corner-br"></span>
+    </div>
+    <div id="scroll-progress" class="scroll-progress" aria-hidden="true"></div>
+
+    <header class="site-header">
+      <a class="brand" href="#top" aria-label="DESI 水光數域，回到首頁">
+        <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span>
+          <strong>DESI</strong>
+          <small>MATHEMATICAL EXPEDITION</small>
+        </span>
+      </a>
+
+      <nav class="chapter-nav" aria-label="探索章節">
+        <a href="#wave"><span>01</span> 波紋</a>
+        <a href="#orbit"><span>02</span> 軌道</a>
+        <a href="#spiral"><span>03</span> 成長</a>
+        <a href="#fractal"><span>04</span> 無限</a>
+      </nav>
+
+      <button id="motion-toggle" class="icon-button motion-toggle" type="button" aria-pressed="false">
+        <span class="motion-icon" aria-hidden="true">Ⅱ</span>
+        <span class="motion-label">暫停動態</span>
+      </button>
+    </header>
+
+    <main id="main">
+      <section id="top" class="hero section-shell" aria-labelledby="hero-title">
+        <div class="hero-telemetry telemetry telemetry-left" aria-hidden="true">
+          <span>SYS / DESI–01</span>
+          <span>COORD 25.03°N</span>
+          <span>FIELD: COMPLEX</span>
+        </div>
+        <div class="hero-telemetry telemetry telemetry-right" aria-hidden="true">
+          <span>MODE / EXPLORE</span>
+          <span>ITERATION ∞</span>
+          <span>SIGNAL: STABLE</span>
+        </div>
+
+        <div class="hero-copy reveal">
+          <p class="eyebrow"><span>00</span> WATERLIGHT DOMAIN</p>
+          <h1 id="hero-title">數學，<br /><em>也會發光</em></h1>
+          <p class="hero-lede">
+            從一滴水出發。改變一個數字，<br class="desktop-break" />
+            看波紋如何成為軌道、螺旋與無限。
+          </p>
+          <div class="hero-actions">
+            <a id="start-explore" class="button button-primary" href="#wave">
+              <span>開始探索</span>
+              <b aria-hidden="true">↘</b>
+            </a>
+            <button id="randomize-all" class="button button-ghost" type="button">
+              隨機一組宇宙
+            </button>
+          </div>
+        </div>
+
+        <div class="hero-object" aria-hidden="true">
+          <div class="orbital orbital-a"></div>
+          <div class="orbital orbital-b"></div>
+          <div class="orbital orbital-c"></div>
+          <div class="light-core">
+            <span></span>
+          </div>
+          <div class="axis-label axis-x">x(t)</div>
+          <div class="axis-label axis-y">y(t)</div>
+          <div class="orbital-index">00 / ORIGIN</div>
+        </div>
+
+        <a class="scroll-cue" href="#wave">
+          <span>滑動探索</span>
+          <i aria-hidden="true"></i>
+          <small>SCROLL</small>
+        </a>
+      </section>
+
+      <section id="wave" class="chapter section-shell" aria-labelledby="wave-title">
+        <div class="chapter-index" aria-hidden="true">
+          <span>01</span>
+          <small>SUPERPOSITION</small>
+        </div>
+
+        <div class="chapter-grid">
+          <div class="chapter-copy reveal">
+            <p class="eyebrow"><span>01</span> 相遇的波</p>
+            <h2 id="wave-title">兩滴水，<br />寫出第三個答案</h2>
+            <p class="chapter-intro">
+              兩列波相遇時，不會互相消失。它們把高度相加：同相處變亮，反相處歸於安靜。
+            </p>
+            <div class="formula" aria-label="波的干涉公式">
+              <span>H =</span>
+              <span class="fraction">
+                <span>sin(2πd₁/λ − ωt) + sin(2πd₂/λ − ωt + Δφ)</span>
+                <span>2</span>
+              </span>
+            </div>
+            <p class="challenge">
+              <span>觀察任務</span>
+              把相位差調到 π，看看中央亮帶發生什麼變化。
+            </p>
+          </div>
+
+          <div class="lab-panel reveal">
+            <div class="panel-head">
+              <span>INTERFERENCE FIELD</span>
+              <span>LIVE / 01</span>
+            </div>
+            <div class="canvas-wrap">
+              <canvas
+                id="wave-canvas"
+                role="img"
+                aria-label="雙波源干涉圖，調整下方參數以探索亮暗條紋"
+              ></canvas>
+              <span class="source-key source-a"><i></i> SOURCE A</span>
+              <span class="source-key source-b"><i></i> SOURCE B</span>
+            </div>
+            <div class="controls" aria-label="波形參數">
+              <label class="control" for="wave-distance">
+                <span>波源距離 <small>DISTANCE</small></span>
+                <output id="wave-distance-out" for="wave-distance">116</output>
+                <input id="wave-distance" type="range" min="30" max="220" value="116" />
+              </label>
+              <label class="control" for="wave-length">
+                <span>波長 <small>WAVELENGTH</small></span>
+                <output id="wave-length-out" for="wave-length">48</output>
+                <input id="wave-length" type="range" min="18" max="90" value="48" />
+              </label>
+              <label class="control" for="wave-phase">
+                <span>相位差 <small>PHASE Δφ</small></span>
+                <output id="wave-phase-out" for="wave-phase">0.00π</output>
+                <input id="wave-phase" type="range" min="0" max="200" value="0" />
+              </label>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="orbit" class="chapter section-shell chapter-alt" aria-labelledby="orbit-title">
+        <div class="chapter-index" aria-hidden="true">
+          <span>02</span>
+          <small>HARMONIC ORBIT</small>
+        </div>
+
+        <div class="chapter-grid">
+          <div class="chapter-copy reveal">
+            <p class="eyebrow"><span>02</span> 波成為軌道</p>
+            <h2 id="orbit-title">比例，讓時間<br />畫出封閉的線</h2>
+            <p class="chapter-intro">
+              把兩個方向的正弦波疊在一起，時間便開始作畫。整數比例決定曲線何時回到起點。
+            </p>
+            <div class="formula formula-stacked" aria-label="李薩如曲線公式">
+              <span>x(t) = sin(at + δ)</span>
+              <span>y(t) = sin(bt)</span>
+            </div>
+            <div class="preset-row" aria-label="軌道預設">
+              <button class="chip" type="button" data-orbit="3,2">3 : 2 經典</button>
+              <button class="chip" type="button" data-orbit="5,4">5 : 4 密織</button>
+            </div>
+          </div>
+
+          <div class="lab-panel reveal">
+            <div class="panel-head">
+              <span>LISSAJOUS ORBIT</span>
+              <span id="orbit-ratio">RATIO / 3:2</span>
+            </div>
+            <div class="canvas-wrap squareish">
+              <canvas
+                id="orbit-canvas"
+                role="img"
+                aria-label="李薩如曲線，顯示兩個正弦波依比例形成的封閉軌道"
+              ></canvas>
+            </div>
+            <div class="controls" aria-label="軌道參數">
+              <label class="control" for="orbit-a">
+                <span>水平頻率 <small>FREQ A</small></span>
+                <output id="orbit-a-out" for="orbit-a">3</output>
+                <input id="orbit-a" type="range" min="1" max="8" value="3" />
+              </label>
+              <label class="control" for="orbit-b">
+                <span>垂直頻率 <small>FREQ B</small></span>
+                <output id="orbit-b-out" for="orbit-b">2</output>
+                <input id="orbit-b" type="range" min="1" max="8" value="2" />
+              </label>
+              <label class="control" for="orbit-phase">
+                <span>相位 <small>PHASE δ</small></span>
+                <output id="orbit-phase-out" for="orbit-phase">90°</output>
+                <input id="orbit-phase" type="range" min="0" max="360" value="90" />
+              </label>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="spiral" class="chapter section-shell" aria-labelledby="spiral-title">
+        <div class="chapter-index" aria-hidden="true">
+          <span>03</span>
+          <small>EXPONENTIAL GROWTH</small>
+        </div>
+
+        <div class="chapter-grid">
+          <div class="chapter-copy reveal">
+            <p class="eyebrow"><span>03</span> 會成長的螺旋</p>
+            <h2 id="spiral-title">每一次轉身，<br />都乘上同一個數</h2>
+            <p class="chapter-intro">
+              加法形成等距，乘法形成螺旋。每轉九十度，半徑都以相同比例成長。
+            </p>
+            <div class="formula formula-stacked" aria-label="對數螺旋公式">
+              <span>r(θ) = r₀e<sup>bθ</sup></span>
+              <span>b = 2 ln(q) / π</span>
+            </div>
+            <button id="golden-spiral" class="chip chip-gold" type="button">
+              設為黃金比例 φ
+            </button>
+            <p class="challenge">
+              <span>觀察任務</span>
+              把成長倍率調成 1，螺旋會變成什麼？
+            </p>
+          </div>
+
+          <div class="lab-panel reveal">
+            <div class="panel-head">
+              <span>LOGARITHMIC SPIRAL</span>
+              <span>GROWTH / 03</span>
+            </div>
+            <div class="canvas-wrap squareish">
+              <canvas
+                id="spiral-canvas"
+                role="img"
+                aria-label="對數螺旋，節點顯示每四分之一圈的半徑成長"
+              ></canvas>
+            </div>
+            <div class="controls controls-two" aria-label="螺旋參數">
+              <label class="control" for="spiral-growth">
+                <span>每 90° 倍率 <small>GROWTH q</small></span>
+                <output id="spiral-growth-out" for="spiral-growth">1.28×</output>
+                <input
+                  id="spiral-growth"
+                  type="range"
+                  min="100"
+                  max="200"
+                  value="128"
+                />
+              </label>
+              <label class="control" for="spiral-turns">
+                <span>圈數 <small>TURNS</small></span>
+                <output id="spiral-turns-out" for="spiral-turns">6</output>
+                <input id="spiral-turns" type="range" min="2" max="9" value="6" />
+              </label>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="fractal" class="chapter section-shell chapter-alt" aria-labelledby="fractal-title">
+        <div class="chapter-index" aria-hidden="true">
+          <span>04</span>
+          <small>INFINITE BOUNDARY</small>
+        </div>
+
+        <div class="chapter-grid">
+          <div class="chapter-copy reveal">
+            <p class="eyebrow"><span>04</span> 一條規則的無限</p>
+            <h2 id="fractal-title">公式只有一行，<br />邊界卻看不完</h2>
+            <p class="chapter-intro">
+              從零開始，不斷平方再加上同一個複數。有些點逃向無限，有些點永遠留在原地。
+            </p>
+            <div class="formula formula-stacked" aria-label="Mandelbrot 集合迭代公式">
+              <span>z₀ = 0</span>
+              <span>zₙ₊₁ = zₙ² + c</span>
+              <small>|z| &gt; 2 → ESCAPE</small>
+            </div>
+            <p class="keyboard-note">
+              點擊畫布可放大；鍵盤使用方向鍵平移、＋／－縮放、Home 重設。
+            </p>
+          </div>
+
+          <div class="lab-panel reveal">
+            <div class="panel-head">
+              <span>MANDELBROT FIELD</span>
+              <span id="fractal-coords">X −0.750 / Y 0.000 / Z 1.00</span>
+            </div>
+            <div class="canvas-wrap fractal-wrap">
+              <canvas
+                id="fractal-canvas"
+                role="img"
+                tabindex="0"
+                aria-label="Mandelbrot 集合互動畫布。點擊放大，方向鍵平移，加減鍵縮放，Home 重設"
+              ></canvas>
+              <div id="fractal-status" class="render-status" aria-live="polite">
+                FIELD READY
+              </div>
+            </div>
+            <div class="fractal-toolbar" aria-label="碎形操作">
+              <button class="tool-button" type="button" data-fractal="zoom-in" aria-label="放大">
+                ＋
+              </button>
+              <button class="tool-button" type="button" data-fractal="zoom-out" aria-label="縮小">
+                －
+              </button>
+              <button class="chip" type="button" data-fractal="reset">全景</button>
+              <button class="chip" type="button" data-fractal="cardioid">主心形</button>
+              <button class="chip" type="button" data-fractal="seahorse">海馬谷</button>
+            </div>
+            <div class="controls controls-one">
+              <label class="control" for="fractal-iterations">
+                <span>迭代深度 <small>ITERATIONS</small></span>
+                <output id="fractal-iterations-out" for="fractal-iterations">90</output>
+                <input
+                  id="fractal-iterations"
+                  type="range"
+                  min="40"
+                  max="180"
+                  step="10"
+                  value="90"
+                />
+              </label>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="closing section-shell" aria-labelledby="closing-title">
+        <div class="closing-rings" aria-hidden="true">
+          <i></i><i></i><i></i><i></i>
+        </div>
+        <p class="eyebrow"><span>END</span> THE RULE CONTINUES</p>
+        <h2 id="closing-title">
+          你改變的，只是幾個數字。<br />
+          <em>出現的，卻是四個世界。</em>
+        </h2>
+        <div class="closing-actions">
+          <button id="restart-all" class="button button-primary" type="button">
+            重新航行 <b aria-hidden="true">↑</b>
+          </button>
+          <button class="button button-ghost" type="button" data-share-copy>
+            複製探索網址
+          </button>
+        </div>
+        <p id="share-status" class="share-status" aria-live="polite"></p>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <p><strong>DESI</strong> / DESIGN × SCIENCE × INFINITY</p>
+      <p>以 HTML Canvas 即時生成 · 無外部影像素材</p>
+      <a href="#top">BACK TO ORIGIN ↑</a>
+    </footer>
+  </body>
+</html>
