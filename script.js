@@ -170,3 +170,7 @@ import("./desi-cinematic-aerial.js?v=20260728-cinematic-aerial").catch((error) =
 import("./desi-cinematic-motion-v2.js?v=20260728-motion-v2").catch((error) => {
   console.error("DESI cinematic motion direction v2 failed to load:", error);
 });
+
+import("./desi-director-v3.js?v=20260728-director-v3").catch((error) => {
+  console.error("DESI WebGL cinematic director v3 failed to load:", error);
+});
