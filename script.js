@@ -162,3 +162,7 @@ import("./desi-visual-qa-final.js?v=20260728-visual-qa").catch((error) => {
 import("./desi-crystal-assembly.js?v=20260728-shatter-assembly").catch((error) => {
   console.error("DESI crystal assembly animation failed to load:", error);
 });
+
+import("./desi-cinematic-aerial.js?v=20260728-cinematic-aerial").catch((error) => {
+  console.error("DESI cinematic aesthetic layer failed to load:", error);
+});
