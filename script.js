@@ -154,3 +154,7 @@ import("./desi-ten-worlds.js?v=20260728-crystal-fix")
   .catch((error) => {
     console.error("DESI ten-worlds module failed to load:", error);
   });
+
+import("./desi-visual-qa-final.js?v=20260728-visual-qa").catch((error) => {
+  console.error("DESI visual QA corrections failed to load:", error);
+});
