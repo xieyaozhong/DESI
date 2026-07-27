@@ -18,13 +18,41 @@
   let activeSection = null;
   let crystalShape = "";
 
+  function bootstrapCover() {
+    if (!document.querySelector("#desi-v2-bootstrap-style")) {
+      const style = document.createElement("style");
+      style.id = "desi-v2-bootstrap-style";
+      style.textContent = ".desi-cinematic-loader:not(.desi-v2-loader){display:none!important}.desi-v2-bootstrap{position:fixed;z-index:10001;inset:0;background:#020304;pointer-events:none}";
+      document.head.appendChild(style);
+    }
+    const cover = document.createElement("div");
+    cover.className = "desi-v2-bootstrap";
+    cover.setAttribute("aria-hidden", "true");
+    document.body.appendChild(cover);
+    return cover;
+  }
+
   function styles() {
-    if (document.querySelector('link[data-desi-cinematic-v2]')) return;
-    const link = document.createElement("link");
-    link.rel = "stylesheet";
-    link.href = "./desi-cinematic-motion-v2.css?v=20260728-motion-v2";
-    link.dataset.desiCinematicV2 = "true";
-    document.head.appendChild(link);
+    const existing = document.querySelector('link[data-desi-cinematic-v2]');
+    if (existing?.sheet) return Promise.resolve();
+    return new Promise((resolve) => {
+      const link = existing || document.createElement("link");
+      if (!existing) {
+        link.rel = "stylesheet";
+        link.href = "./desi-cinematic-motion-v2.css?v=20260728-motion-v2";
+        link.dataset.desiCinematicV2 = "true";
+        document.head.appendChild(link);
+      }
+      let settled = false;
+      const done = () => {
+        if (settled) return;
+        settled = true;
+        resolve();
+      };
+      link.addEventListener("load", done, { once: true });
+      link.addEventListener("error", done, { once: true });
+      setTimeout(done, 900);
+    });
   }
 
   function layer(name, parent = document.body) {
@@ -248,16 +276,18 @@
     addEventListener("pagehide", () => cancelAnimationFrame(raf), { once: true });
   }
 
-  function init() {
-    styles();
+  async function init() {
+    const cover = bootstrapCover();
+    await styles();
     chrome();
     sections();
     crystalDirector();
     magnetic();
     motion();
     loader();
+    requestAnimationFrame(() => cover.remove());
   }
 
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init, { once: true });
-  else init();
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => void init(), { once: true });
+  else void init();
 })();
