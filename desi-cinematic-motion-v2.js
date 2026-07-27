@@ -133,25 +133,40 @@
   }
 
   function sections() {
-    const all = $$("main>section");
-    all.forEach((s) => s.classList.add("cinema-v2-section"));
-    if (!("IntersectionObserver" in window)) {
-      all.forEach((s) => s.classList.add("cinema-v2-entered"));
-      return;
+    const main = $("main");
+    if (!main) return;
+    const observer = "IntersectionObserver" in window
+      ? new IntersectionObserver((entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add("cinema-v2-entered", "cinema-v2-active");
+              if (activeSection && activeSection !== entry.target) activeSection.classList.remove("cinema-v2-active");
+              if (activeSection !== entry.target && entry.intersectionRatio > .28) shutter();
+              activeSection = entry.target;
+            } else if (!entry.intersectionRatio) {
+              entry.target.classList.remove("cinema-v2-active");
+            }
+          });
+        }, { rootMargin: "-12% 0 -18%", threshold: [0, .16, .28, .55] })
+      : null;
+
+    const register = (section) => {
+      if (!(section instanceof HTMLElement) || !section.matches("main>section") || section.classList.contains("cinema-v2-section")) return;
+      section.classList.add("cinema-v2-section");
+      if (observer) observer.observe(section);
+      else section.classList.add("cinema-v2-entered");
+    };
+
+    $$("main>section").forEach(register);
+    if ("MutationObserver" in window) {
+      new MutationObserver((records) => {
+        records.forEach((record) => record.addedNodes.forEach((node) => {
+          if (!(node instanceof HTMLElement)) return;
+          if (node.matches("section")) register(node);
+          $$("section", node).forEach(register);
+        }));
+      }).observe(main, { childList: true });
     }
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add("cinema-v2-entered", "cinema-v2-active");
-          if (activeSection && activeSection !== entry.target) activeSection.classList.remove("cinema-v2-active");
-          if (activeSection !== entry.target && entry.intersectionRatio > .28) shutter();
-          activeSection = entry.target;
-        } else if (!entry.intersectionRatio) {
-          entry.target.classList.remove("cinema-v2-active");
-        }
-      });
-    }, { rootMargin: "-12% 0 -18%", threshold: [0, .16, .28, .55] });
-    all.forEach((s) => observer.observe(s));
   }
 
   function crystalDirector() {
