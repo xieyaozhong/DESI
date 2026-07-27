@@ -166,3 +166,7 @@ import("./desi-crystal-assembly.js?v=20260728-shatter-assembly").catch((error) =
 import("./desi-cinematic-aerial.js?v=20260728-cinematic-aerial").catch((error) => {
   console.error("DESI cinematic aesthetic layer failed to load:", error);
 });
+
+import("./desi-cinematic-motion-v2.js?v=20260728-motion-v2").catch((error) => {
+  console.error("DESI cinematic motion direction v2 failed to load:", error);
+});
