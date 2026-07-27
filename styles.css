@@ -27,7 +27,7 @@
 
 html {
   background: var(--ink);
-  overflow-x: hidden;
+  overflow-x: clip;
   scroll-behavior: smooth;
   scroll-padding-top: calc(var(--header-height) + 20px);
 }
@@ -35,7 +35,7 @@ html {
 body {
   margin: 0;
   min-width: 320px;
-  overflow-x: hidden;
+  overflow-x: clip;
   background:
     radial-gradient(circle at 52% 12%, rgba(27, 109, 139, 0.2), transparent 36rem),
     linear-gradient(180deg, #020a12 0%, #03111a 45%, #02080f 100%);
@@ -660,6 +660,330 @@ button {
   font-size: 0.47rem;
 }
 
+.crystal-passage {
+  position: relative;
+  width: 100%;
+  height: 520svh;
+}
+
+.crystal-sticky {
+  position: sticky;
+  top: 0;
+  width: 100%;
+  height: 100svh;
+  overflow: hidden;
+  isolation: isolate;
+  background:
+    radial-gradient(circle at 50% 48%, rgba(22, 101, 130, 0.18), transparent 37%),
+    linear-gradient(180deg, rgba(2, 10, 18, 0.72), rgba(1, 8, 14, 0.9));
+}
+
+.crystal-sticky::before,
+.crystal-sticky::after {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.crystal-sticky::before {
+  inset: 0;
+  background:
+    linear-gradient(rgba(135, 223, 239, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(135, 223, 239, 0.025) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: radial-gradient(circle at center, black, transparent 74%);
+}
+
+.crystal-sticky::after {
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--aqua), transparent);
+  box-shadow: 0 0 18px rgba(120, 255, 230, 0.45);
+  animation: crystal-scan 5s ease-in-out infinite;
+  opacity: 0.32;
+}
+
+#crystal-canvas {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.crystal-archive-head {
+  position: absolute;
+  z-index: 5;
+  top: calc(var(--header-height) + 20px);
+  right: var(--edge);
+  left: var(--edge);
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  color: rgba(176, 222, 230, 0.42);
+  font-family: var(--mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.18em;
+}
+
+.crystal-archive-head span:first-child {
+  color: var(--aqua);
+}
+
+.crystal-card-shell {
+  position: absolute;
+  z-index: 4;
+  top: 50%;
+  left: 50%;
+  width: clamp(360px, 53vw, 720px);
+  aspect-ratio: 1.62;
+  padding: 1px;
+  clip-path: polygon(7% 0, 86% 4%, 100% 29%, 92% 88%, 71% 100%, 5% 92%, 0 21%);
+  background: linear-gradient(
+    125deg,
+    rgba(232, 255, 253, 0.84),
+    rgba(112, 202, 255, 0.18) 31%,
+    rgba(166, 140, 255, 0.72) 78%,
+    rgba(120, 255, 230, 0.55)
+  );
+  filter:
+    drop-shadow(0 28px 50px rgba(0, 0, 0, 0.44))
+    drop-shadow(0 0 24px rgba(80, 194, 228, 0.26));
+  opacity: 0;
+  transform: translate3d(-50%, -50%, 0) perspective(1100px) rotateY(70deg) scale(0.6);
+  transform-origin: center;
+  will-change: transform, opacity, filter;
+}
+
+.crystal-topic-card {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  clip-path: inherit;
+  background:
+    radial-gradient(circle at 70% 28%, rgba(88, 205, 237, 0.22), transparent 42%),
+    rgba(3, 19, 29, 0.94);
+}
+
+#crystal-topic-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.crystal-card-glass {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(112deg, rgba(235, 255, 255, 0.16), transparent 19%, transparent 62%, rgba(165, 139, 255, 0.12)),
+    linear-gradient(180deg, transparent 36%, rgba(1, 10, 17, 0.88));
+  mix-blend-mode: screen;
+}
+
+.crystal-card-glass::before {
+  content: "";
+  position: absolute;
+  top: -35%;
+  left: -24%;
+  width: 38%;
+  height: 170%;
+  background: linear-gradient(90deg, transparent, rgba(224, 255, 255, 0.18), transparent);
+  transform: rotate(18deg);
+  animation: crystal-glint 4.8s ease-in-out infinite;
+}
+
+.crystal-card-copy {
+  position: absolute;
+  z-index: 2;
+  right: 11%;
+  bottom: 10%;
+  left: 9%;
+  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.82);
+}
+
+.crystal-card-copy > p:first-child {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 7px;
+  color: rgba(203, 239, 242, 0.58);
+  font-family: var(--mono);
+  font-size: 0.52rem;
+  letter-spacing: 0.16em;
+}
+
+#crystal-number {
+  color: var(--aqua);
+}
+
+.crystal-card-copy h2 {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: clamp(2.35rem, 5vw, 5.3rem);
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+
+.crystal-card-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(196, 249, 250, 0.18);
+  color: rgba(206, 239, 240, 0.58);
+  font-family: var(--mono);
+  font-size: 0.52rem;
+  letter-spacing: 0.1em;
+}
+
+#crystal-formula {
+  color: var(--gold);
+  font-family: var(--serif);
+  font-size: 0.8rem;
+}
+
+#crystal-description {
+  max-width: 29rem;
+  margin: 10px 0 0;
+  color: rgba(223, 244, 242, 0.7);
+  font-size: clamp(0.66rem, 1vw, 0.84rem);
+  letter-spacing: 0.05em;
+}
+
+.crystal-theme-rail {
+  position: absolute;
+  z-index: 5;
+  top: 50%;
+  right: var(--edge);
+  display: grid;
+  gap: 15px;
+  transform: translateY(-50%);
+  color: rgba(162, 202, 211, 0.28);
+  font-family: var(--mono);
+  font-size: 0.53rem;
+  letter-spacing: 0.12em;
+}
+
+.crystal-theme-rail span {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 9px;
+  transition:
+    color 180ms ease,
+    transform 180ms ease;
+}
+
+.crystal-theme-rail span::before {
+  content: "";
+  width: 22px;
+  height: 1px;
+  background: rgba(170, 220, 228, 0.18);
+  transition: width 180ms ease, background 180ms ease;
+}
+
+.crystal-theme-rail i {
+  color: rgba(120, 255, 230, 0.42);
+  font-style: normal;
+}
+
+.crystal-theme-rail span.is-active {
+  color: var(--pearl);
+  transform: translateX(-7px);
+}
+
+.crystal-theme-rail span.is-active::before {
+  width: 44px;
+  background: var(--aqua);
+  box-shadow: 0 0 8px rgba(120, 255, 230, 0.42);
+}
+
+.crystal-depth-readout {
+  position: absolute;
+  z-index: 5;
+  bottom: 34px;
+  left: var(--edge);
+  display: grid;
+  gap: 3px;
+  color: rgba(153, 196, 205, 0.34);
+  font-family: var(--mono);
+  font-size: 0.48rem;
+  letter-spacing: 0.14em;
+}
+
+.crystal-scroll-hint {
+  position: absolute;
+  z-index: 5;
+  bottom: 28px;
+  left: 50%;
+  display: grid;
+  justify-items: center;
+  color: rgba(208, 242, 241, 0.58);
+  font-family: var(--mono);
+  font-size: 0.52rem;
+  letter-spacing: 0.17em;
+  transform: translateX(-50%);
+}
+
+.crystal-scroll-hint i {
+  width: 58px;
+  height: 1px;
+  margin: 7px 0;
+  background: linear-gradient(90deg, transparent, var(--aqua), transparent);
+}
+
+.crystal-scroll-hint small {
+  color: rgba(144, 184, 193, 0.34);
+  font-size: 0.45rem;
+}
+
+.crystal-semantic {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.crystal-static-list {
+  display: none;
+}
+
+@keyframes crystal-scan {
+  0%,
+  100% {
+    top: 12%;
+    opacity: 0;
+  }
+  45%,
+  55% {
+    opacity: 0.36;
+  }
+  50% {
+    top: 88%;
+  }
+}
+
+@keyframes crystal-glint {
+  0%,
+  18% {
+    transform: translateX(-160%) rotate(18deg);
+  }
+  62%,
+  100% {
+    transform: translateX(420%) rotate(18deg);
+  }
+}
+
 .chapter {
   display: flex;
   align-items: center;
@@ -1273,6 +1597,86 @@ button {
     padding-inline: 24px;
   }
 
+  .crystal-passage {
+    height: 460svh;
+  }
+
+  .crystal-archive-head {
+    top: calc(var(--header-height) + 18px);
+    right: 24px;
+    left: 24px;
+  }
+
+  .crystal-archive-head span:last-child {
+    display: none;
+  }
+
+  .crystal-card-shell {
+    width: calc(100% - 34px);
+    max-width: min(560px, calc(115svh - 207px));
+    max-height: calc(100svh - 180px);
+    aspect-ratio: 1.15;
+    clip-path: polygon(8% 0, 82% 3%, 100% 20%, 94% 88%, 73% 100%, 4% 92%, 0 18%);
+  }
+
+  .crystal-card-copy {
+    right: 10%;
+    bottom: 9%;
+    left: 9%;
+  }
+
+  .crystal-card-copy h2 {
+    font-size: clamp(2.2rem, 11vw, 4.4rem);
+  }
+
+  .crystal-card-meta {
+    font-size: 0.47rem;
+  }
+
+  #crystal-description {
+    max-width: 24rem;
+    font-size: 0.7rem;
+  }
+
+  .crystal-theme-rail {
+    top: auto;
+    right: 22px;
+    bottom: 72px;
+    left: 22px;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    transform: none;
+  }
+
+  .crystal-theme-rail span {
+    display: grid;
+    justify-items: center;
+    justify-content: center;
+    gap: 4px;
+    font-size: 0.46rem;
+  }
+
+  .crystal-theme-rail span::before {
+    width: 100%;
+    order: 2;
+  }
+
+  .crystal-theme-rail span.is-active {
+    transform: translateY(-4px);
+  }
+
+  .crystal-theme-rail span.is-active::before {
+    width: 100%;
+  }
+
+  .crystal-depth-readout {
+    display: none;
+  }
+
+  .crystal-scroll-hint {
+    bottom: 18px;
+  }
+
   .hero {
     min-height: 100svh;
     align-items: end;
@@ -1405,6 +1809,26 @@ button {
     font-size: 0.78rem;
   }
 
+  .crystal-card-copy > p:first-child {
+    font-size: 0.45rem;
+  }
+
+  .crystal-card-meta {
+    display: grid;
+    gap: 3px;
+  }
+
+  #crystal-signal {
+    display: none;
+  }
+
+  #crystal-description {
+    max-width: 18rem;
+    margin-top: 7px;
+    font-size: 0.64rem;
+    line-height: 1.45;
+  }
+
   .panel-head {
     font-size: 0.46rem;
   }
@@ -1421,6 +1845,32 @@ button {
 
   .chip {
     flex: 1 1 auto;
+  }
+}
+
+@media (max-width: 900px) and (max-height: 620px) {
+  .crystal-archive-head {
+    display: none;
+  }
+
+  .crystal-card-shell {
+    max-width: min(420px, calc(115svh - 207px));
+  }
+
+  .crystal-card-copy h2 {
+    font-size: clamp(1.65rem, 7vw, 2.7rem);
+  }
+
+  #crystal-description {
+    display: none;
+  }
+
+  .crystal-theme-rail {
+    bottom: 38px;
+  }
+
+  .crystal-scroll-hint {
+    display: none;
   }
 }
 
@@ -1441,6 +1891,103 @@ button {
   .reveal {
     opacity: 1;
     transform: none;
+  }
+
+  .crystal-passage {
+    height: auto;
+    padding: calc(var(--header-height) + 54px) 24px 90px;
+  }
+
+  .crystal-sticky {
+    position: relative;
+    height: auto;
+    min-height: 0;
+    overflow: visible;
+    background: transparent;
+  }
+
+  #crystal-canvas,
+  .crystal-sticky::before,
+  .crystal-sticky::after,
+  .crystal-card-shell,
+  .crystal-archive-head,
+  .crystal-theme-rail,
+  .crystal-depth-readout,
+  .crystal-scroll-hint {
+    display: none;
+  }
+
+  .crystal-static-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    width: min(100%, 980px);
+    margin: 0 auto;
+  }
+
+  .crystal-semantic {
+    position: static;
+    width: min(100%, 980px);
+    height: auto;
+    margin: 0 auto 24px;
+    overflow: visible;
+    clip-path: none;
+    white-space: normal;
+  }
+
+  .crystal-semantic h2 {
+    max-width: 12em;
+    margin: 0;
+    font-family: var(--serif);
+    font-size: clamp(2.6rem, 7vw, 5.6rem);
+    font-weight: 400;
+    line-height: 1.03;
+  }
+
+  .crystal-semantic p {
+    max-width: 42rem;
+    color: rgba(219, 240, 239, 0.65);
+  }
+
+  .crystal-semantic ol {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+
+  .crystal-static-list article {
+    min-height: 180px;
+    display: grid;
+    align-content: end;
+    gap: 7px;
+    padding: 22px;
+    border: 1px solid var(--line);
+    background:
+      linear-gradient(145deg, rgba(62, 174, 201, 0.12), transparent 55%),
+      rgba(4, 22, 32, 0.72);
+    clip-path: polygon(7% 0, 91% 4%, 100% 24%, 94% 92%, 15% 100%, 0 79%, 2% 16%);
+  }
+
+  .crystal-static-list span,
+  .crystal-static-list small {
+    color: var(--aqua);
+    font-family: var(--mono);
+    font-size: 0.55rem;
+    letter-spacing: 0.12em;
+  }
+
+  .crystal-static-list strong {
+    font-family: var(--serif);
+    font-size: clamp(1.6rem, 5vw, 2.8rem);
+    font-weight: 400;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) and (max-width: 600px) {
+  .crystal-static-list {
+    grid-template-columns: 1fr;
   }
 }
 

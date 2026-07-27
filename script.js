@@ -4,6 +4,11 @@
   const $ = (selector, scope = document) => scope.querySelector(selector);
   const $$ = (selector, scope = document) => [...scope.querySelectorAll(selector)];
   const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+  const lerp = (start, end, amount) => start + (end - start) * amount;
+  const smoothstep = (start, end, value) => {
+    const amount = clamp((value - start) / Math.max(0.00001, end - start), 0, 1);
+    return amount * amount * (3 - 2 * amount);
+  };
   const TAU = Math.PI * 2;
   const reduceMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
   const state = {
@@ -18,11 +23,11 @@
     return canvas?.getContext("2d", { alpha: true }) || null;
   }
 
-  function sizeCanvas(canvas, context, dprLimit = 2) {
+  function sizeCanvas(canvas, context, dprLimit = 2, useLayoutSize = false) {
     if (!canvas || !context) return { width: 1, height: 1, dpr: 1 };
-    const rect = canvas.getBoundingClientRect();
-    const width = Math.max(1, Math.round(rect.width));
-    const height = Math.max(1, Math.round(rect.height));
+    const rect = useLayoutSize ? null : canvas.getBoundingClientRect();
+    const width = Math.max(1, Math.round(useLayoutSize ? canvas.clientWidth : rect.width));
+    const height = Math.max(1, Math.round(useLayoutSize ? canvas.clientHeight : rect.height));
     const dpr = Math.min(window.devicePixelRatio || 1, dprLimit);
     const pixelWidth = Math.max(1, Math.round(width * dpr));
     const pixelHeight = Math.max(1, Math.round(height * dpr));
@@ -290,7 +295,7 @@
       context.fillStyle = glow;
       context.fillRect(0, 0, width, height);
 
-      drawWireForm(time);
+      if (!state.visible.has("crystal-passage")) drawWireForm(time);
       context.save();
       context.globalCompositeOperation = "screen";
 
@@ -358,6 +363,528 @@
 
     resize();
     watchSize(canvas, resize);
+    return { draw };
+  }
+
+  function createCrystalPassage() {
+    const section = $("#crystal-passage");
+    const canvas = $("#crystal-canvas");
+    const context = safeContext(canvas);
+    const topicCanvas = $("#crystal-topic-canvas");
+    const topicContext = safeContext(topicCanvas);
+    const card = $("#crystal-card-shell");
+    const sticky = $(".crystal-sticky", section);
+    const number = $("#crystal-number");
+    const code = $("#crystal-code");
+    const title = $("#crystal-title");
+    const formula = $("#crystal-formula");
+    const signal = $("#crystal-signal");
+    const description = $("#crystal-description");
+    const depthReadout = $("#crystal-depth");
+    const phaseReadout = $("#crystal-phase");
+    const railItems = $$("[data-crystal-rail]");
+
+    if (!section || !canvas || !context || !topicCanvas || !topicContext || !card) {
+      return { draw: () => {} };
+    }
+
+    const themes = [
+      {
+        number: "01",
+        code: "SUPERPOSITION",
+        title: "相遇的波",
+        formula: "H = ψ₁ + ψ₂",
+        signal: "SIGNAL / INTERFERENCE",
+        description: "兩個波源在水面相遇，亮暗之間留下相位的指紋。",
+        color: [120, 255, 230],
+        direction: -1,
+      },
+      {
+        number: "02",
+        code: "HARMONIC ORBIT",
+        title: "波成為軌道",
+        formula: "x = sin(at + δ)",
+        signal: "RATIO / 3 : 2",
+        description: "兩個方向的週期相互牽引，時間沿著比例畫出封閉軌道。",
+        color: [112, 202, 255],
+        direction: 1,
+      },
+      {
+        number: "03",
+        code: "EXPONENTIAL GROWTH",
+        title: "會成長的螺旋",
+        formula: "r = r₀eᵇᶿ",
+        signal: "GROWTH / × 1.62",
+        description: "每一次轉身都乘上同一個數，半徑便展開成不停止的螺旋。",
+        color: [243, 216, 145],
+        direction: -1,
+      },
+      {
+        number: "04",
+        code: "INFINITE BOUNDARY",
+        title: "一條規則的無限",
+        formula: "zₙ₊₁ = zₙ² + c",
+        signal: "ITERATION / ∞",
+        description: "一行迭代公式反覆折疊平面，在水晶邊界裡生成無窮細節。",
+        color: [166, 140, 255],
+        direction: 1,
+      },
+    ];
+
+    let metrics = { width: 1, height: 1, dpr: 1 };
+    let topicMetrics = { width: 1, height: 1, dpr: 1 };
+    let shards = [];
+    let stars = [];
+    let activeTheme = -1;
+    let lastProgress = -1;
+    let lastDrawTime = -Infinity;
+    let needsPaint = true;
+    let storyTop = 0;
+    let storyTravel = 1;
+
+    const seeded = (index, salt = 0) => {
+      const value = Math.sin((index + 1) * 12.9898 + salt * 78.233) * 43758.5453;
+      return value - Math.floor(value);
+    };
+
+    const rebuildScene = () => {
+      const compact = metrics.width < 900;
+      const shardCount = compact ? 34 : 58;
+      const starCount = compact ? 64 : 112;
+      shards = Array.from({ length: shardCount }, (_, index) => {
+        const depth = 0.16 + seeded(index, 2) * 0.84;
+        const pointCount = 4 + Math.floor(seeded(index, 8) * 2);
+        const points = Array.from({ length: pointCount }, (__, pointIndex) => {
+          const angle = (pointIndex / pointCount) * TAU + seeded(index + pointIndex, 11) * 0.35;
+          const radius = 0.58 + seeded(index + pointIndex, 12) * 0.52;
+          return [Math.cos(angle) * radius, Math.sin(angle) * radius];
+        });
+        return {
+          x: 0.04 + seeded(index, 3) * 0.92,
+          y: 0.06 + seeded(index, 4) * 0.88,
+          depth,
+          size: lerp(compact ? 7 : 8, compact ? 37 : 54, depth),
+          angle: seeded(index, 5) * TAU,
+          rotation: seeded(index, 6) * TAU,
+          drift: seeded(index, 7) * TAU,
+          featured: seeded(index, 9) > 0.84,
+          points,
+        };
+      });
+      stars = Array.from({ length: starCount }, (_, index) => ({
+        x: seeded(index, 21),
+        y: seeded(index, 22),
+        depth: 0.18 + seeded(index, 23) * 0.82,
+        size: 0.45 + seeded(index, 24) * 2.2,
+        pulse: seeded(index, 25) * TAU,
+      }));
+      needsPaint = true;
+    };
+
+    const resize = () => {
+      metrics = sizeCanvas(canvas, context, 1.5);
+      topicMetrics = sizeCanvas(topicCanvas, topicContext, 1.5, true);
+      const sectionRect = section.getBoundingClientRect();
+      const stickyHeight = sticky?.offsetHeight || window.innerHeight;
+      storyTop = sectionRect.top + window.scrollY;
+      storyTravel = Math.max(1, section.offsetHeight - stickyHeight);
+      rebuildScene();
+    };
+
+    const getProgress = () => clamp((window.scrollY - storyTop) / storyTravel, 0, 1);
+
+    const setTheme = (index) => {
+      if (index === activeTheme) return;
+      activeTheme = index;
+      const theme = themes[index];
+      if (number) number.textContent = theme.number;
+      if (code) code.textContent = theme.code;
+      if (title) title.textContent = theme.title;
+      if (formula) formula.textContent = theme.formula;
+      if (signal) signal.textContent = theme.signal;
+      if (description) description.textContent = theme.description;
+      railItems.forEach((item, railIndex) => {
+        item.classList.toggle("is-active", railIndex === index);
+      });
+      needsPaint = true;
+    };
+
+    const drawGlow = (target, x, y, radius, rgb, opacity = 1) => {
+      const glow = target.createRadialGradient(x, y, 0, x, y, radius);
+      glow.addColorStop(0, `rgba(${rgb.join(",")},${0.86 * opacity})`);
+      glow.addColorStop(0.16, `rgba(${rgb.join(",")},${0.36 * opacity})`);
+      glow.addColorStop(1, `rgba(${rgb.join(",")},0)`);
+      target.fillStyle = glow;
+      target.beginPath();
+      target.arc(x, y, radius, 0, TAU);
+      target.fill();
+    };
+
+    const strokeMotif = (target, path, rgb) => {
+      target.save();
+      target.globalCompositeOperation = "screen";
+      target.strokeStyle = `rgba(${rgb.join(",")},0.13)`;
+      target.lineWidth = 10;
+      target.stroke(path);
+      target.strokeStyle = `rgba(${rgb.join(",")},0.9)`;
+      target.lineWidth = 1.35;
+      target.stroke(path);
+      target.restore();
+    };
+
+    const drawTopic = (time, themeIndex, localProgress) => {
+      const { width, height } = topicMetrics;
+      const theme = themes[themeIndex];
+      const rgb = theme.color;
+      topicContext.clearRect(0, 0, width, height);
+
+      const wash = topicContext.createRadialGradient(
+        width * 0.66,
+        height * 0.35,
+        0,
+        width * 0.66,
+        height * 0.35,
+        Math.max(width, height) * 0.7,
+      );
+      wash.addColorStop(0, `rgba(${rgb.join(",")},0.19)`);
+      wash.addColorStop(0.48, "rgba(7, 39, 53, 0.2)");
+      wash.addColorStop(1, "rgba(2, 12, 20, 0.92)");
+      topicContext.fillStyle = wash;
+      topicContext.fillRect(0, 0, width, height);
+
+      topicContext.save();
+      topicContext.strokeStyle = "rgba(181, 235, 241, 0.055)";
+      topicContext.lineWidth = 1;
+      const grid = Math.max(28, Math.round(width / 14));
+      for (let x = grid; x < width; x += grid) {
+        topicContext.beginPath();
+        topicContext.moveTo(x, 0);
+        topicContext.lineTo(x, height);
+        topicContext.stroke();
+      }
+      for (let y = grid; y < height; y += grid) {
+        topicContext.beginPath();
+        topicContext.moveTo(0, y);
+        topicContext.lineTo(width, y);
+        topicContext.stroke();
+      }
+
+      if (themeIndex === 0) {
+        const temporal = state.paused ? 0.8 : time * 0.0012;
+        topicContext.globalCompositeOperation = "screen";
+        for (let band = 0; band < 15; band += 1) {
+          const path = new Path2D();
+          const baseY = height * 0.1 + (band / 14) * height * 0.7;
+          for (let x = -10; x <= width + 10; x += 9) {
+            const distanceA = Math.hypot(x - width * 0.34, baseY - height * 0.32);
+            const distanceB = Math.hypot(x - width * 0.7, baseY - height * 0.4);
+            const wave =
+              Math.sin(distanceA * 0.035 - temporal) * 9 +
+              Math.sin(distanceB * 0.035 - temporal + 1.2) * 9;
+            if (x < 0) path.moveTo(x, baseY + wave);
+            else path.lineTo(x, baseY + wave);
+          }
+          topicContext.strokeStyle =
+            band % 2
+              ? "rgba(166, 140, 255, 0.34)"
+              : `rgba(${rgb.join(",")},0.38)`;
+          topicContext.lineWidth = 1;
+          topicContext.stroke(path);
+        }
+        drawGlow(topicContext, width * 0.34, height * 0.32, 32, rgb, 0.8);
+        drawGlow(topicContext, width * 0.7, height * 0.4, 32, [166, 140, 255], 0.8);
+      } else if (themeIndex === 1) {
+        const path = new Path2D();
+        const cx = width * 0.58;
+        const cy = height * 0.39;
+        const rx = width * 0.31;
+        const ry = height * 0.31;
+        for (let index = 0; index <= 620; index += 1) {
+          const t = (index / 620) * TAU;
+          const x = cx + Math.sin(3 * t + Math.PI / 2) * rx;
+          const y = cy + Math.sin(2 * t) * ry;
+          if (!index) path.moveTo(x, y);
+          else path.lineTo(x, y);
+        }
+        strokeMotif(topicContext, path, rgb);
+        const playhead = state.paused ? 1.1 : time * 0.00055;
+        const dotX = cx + Math.sin(3 * playhead + Math.PI / 2) * rx;
+        const dotY = cy + Math.sin(2 * playhead) * ry;
+        drawGlow(topicContext, dotX, dotY, 28, [120, 255, 230], 1);
+      } else if (themeIndex === 2) {
+        const path = new Path2D();
+        const cx = width * 0.6;
+        const cy = height * 0.39;
+        const maximum = Math.min(width, height) * 0.38;
+        for (let index = 0; index <= 560; index += 1) {
+          const theta = (index / 560) * TAU * 6.2;
+          const radius = maximum * Math.exp(0.078 * (theta - TAU * 6.2));
+          const angle = theta - 0.7 + (state.paused ? 0 : time * 0.000035);
+          const x = cx + Math.cos(angle) * radius;
+          const y = cy + Math.sin(angle) * radius;
+          if (!index) path.moveTo(x, y);
+          else path.lineTo(x, y);
+        }
+        strokeMotif(topicContext, path, rgb);
+        for (let step = 0; step < 16; step += 1) {
+          const theta = TAU * 2.5 + step * (Math.PI / 2);
+          const radius = maximum * Math.exp(0.078 * (theta - TAU * 6.2));
+          topicContext.fillStyle = `rgba(${rgb.join(",")},${0.28 + step * 0.03})`;
+          topicContext.beginPath();
+          topicContext.arc(
+            cx + Math.cos(theta - 0.7) * radius,
+            cy + Math.sin(theta - 0.7) * radius,
+            1.2 + step * 0.08,
+            0,
+            TAU,
+          );
+          topicContext.fill();
+        }
+      } else {
+        const cx = width * 0.61;
+        const cy = height * 0.38;
+        const size = Math.min(width, height) * 0.34;
+        const path = new Path2D();
+        for (let index = 0; index <= 420; index += 1) {
+          const t = (index / 420) * TAU;
+          const x = cx + size * 0.62 * (0.5 * Math.cos(t) - 0.25 * Math.cos(2 * t));
+          const y = cy + size * 0.62 * (0.5 * Math.sin(t) - 0.25 * Math.sin(2 * t));
+          if (!index) path.moveTo(x, y);
+          else path.lineTo(x, y);
+        }
+        path.moveTo(cx - size * 0.38, cy);
+        path.arc(cx - size * 0.58, cy, size * 0.2, 0, TAU);
+        strokeMotif(topicContext, path, rgb);
+        for (let branch = 0; branch < 9; branch += 1) {
+          const angle = branch * 2.24 + localProgress * 0.8;
+          const radius = size * (0.12 + branch * 0.035);
+          topicContext.strokeStyle = `rgba(${rgb.join(",")},${0.42 - branch * 0.026})`;
+          topicContext.beginPath();
+          topicContext.arc(
+            cx - size * 0.73 + Math.cos(angle) * radius * 0.38,
+            cy + Math.sin(angle) * radius * 0.38,
+            radius,
+            0,
+            TAU,
+          );
+          topicContext.stroke();
+        }
+      }
+
+      const scanX = ((state.paused ? localProgress : time * 0.00008) % 1) * width;
+      const scan = topicContext.createLinearGradient(scanX - 80, 0, scanX + 80, 0);
+      scan.addColorStop(0, "rgba(255,255,255,0)");
+      scan.addColorStop(0.5, "rgba(208,255,250,0.09)");
+      scan.addColorStop(1, "rgba(255,255,255,0)");
+      topicContext.fillStyle = scan;
+      topicContext.fillRect(scanX - 80, 0, 160, height);
+      topicContext.restore();
+    };
+
+    const drawShard = (shard, index, progress, time, activeIndex, outro) => {
+      const { width, height } = metrics;
+      const compact = width < 900;
+      const shortest = Math.min(width, height);
+      const cx = width * 0.5;
+      const cy = height * (compact ? 0.45 : 0.49);
+      const intro = smoothstep(0.01, 0.13, progress);
+      const floatX =
+        shard.x * width +
+        Math.sin((state.paused ? 0 : time * 0.00022) + shard.drift) * 18 * shard.depth;
+      const floatY =
+        shard.y * height +
+        Math.cos((state.paused ? 0 : time * 0.00016) + shard.drift) * 14 * shard.depth +
+        (progress - 0.5) * (shard.depth - 0.5) * height * 0.28;
+      const sphereX = cx + Math.cos(shard.angle) * shortest * (0.08 + shard.depth * 0.2);
+      const sphereY = cy + Math.sin(shard.angle) * shortest * (0.045 + shard.depth * 0.1);
+      let x = lerp(sphereX, floatX, intro);
+      let y = lerp(sphereY, floatY, intro);
+
+      const spire = index % 4;
+      const level = Math.floor(index / 4);
+      const spireOffset = (spire - 1.5) * shortest * 0.075;
+      const formationX =
+        cx +
+        spireOffset +
+        Math.sin(shard.drift + level) * shortest * 0.012 +
+        (spire - 1.5) * level * 1.4;
+      const formationY =
+        cy +
+        shortest * 0.16 -
+        level * shortest * 0.018 -
+        Math.abs(spire - 1.5) * shortest * 0.028;
+      x = lerp(x, formationX, outro);
+      y = lerp(y, formationY, outro);
+
+      const theme = themes[activeIndex];
+      const rgb = theme.color;
+      const size = lerp(shard.size, shortest * (0.018 + shard.depth * 0.018), outro);
+      const rotation = lerp(
+        shard.rotation + progress * (shard.depth - 0.5) * 3,
+        (spire - 1.5) * 0.16,
+        outro,
+      );
+      const alpha =
+        (0.12 + shard.depth * 0.34 + (shard.featured ? 0.16 : 0)) *
+        lerp(1, 1.65, outro);
+
+      context.save();
+      context.translate(x, y);
+      context.rotate(rotation);
+      context.scale(1, 0.72 + shard.depth * 0.34);
+      context.beginPath();
+      shard.points.forEach((point, pointIndex) => {
+        const pointX = point[0] * size;
+        const pointY = point[1] * size;
+        if (!pointIndex) context.moveTo(pointX, pointY);
+        else context.lineTo(pointX, pointY);
+      });
+      context.closePath();
+      context.fillStyle = `rgba(${rgb.join(",")},${alpha * 0.16})`;
+      context.strokeStyle = `rgba(${rgb.join(",")},${alpha})`;
+      context.lineWidth = shard.featured ? 1.1 : 0.65;
+      context.fill();
+      context.stroke();
+
+      context.globalAlpha = alpha * 0.55;
+      context.strokeStyle = "rgba(225, 255, 255, 0.62)";
+      context.beginPath();
+      context.moveTo(shard.points[0][0] * size, shard.points[0][1] * size);
+      context.lineTo(0, 0);
+      context.lineTo(shard.points[2][0] * size, shard.points[2][1] * size);
+      context.stroke();
+      context.restore();
+    };
+
+    const draw = (time) => {
+      const progress = getProgress();
+      const progressChanged = Math.abs(progress - lastProgress) > 0.0005;
+      if (state.paused && !needsPaint && !progressChanged) return;
+      if (!state.paused && !progressChanged && time - lastDrawTime < 30) return;
+
+      const { width, height } = metrics;
+      const story = clamp((progress - 0.075) / 0.83, 0, 0.9999);
+      const themePosition = story * themes.length;
+      const themeIndex = clamp(Math.floor(themePosition), 0, themes.length - 1);
+      const localProgress = themePosition - themeIndex;
+      const entry = smoothstep(0.02, 0.2, localProgress);
+      const exit = 1 - smoothstep(0.78, 0.98, localProgress);
+      const passageVisibility =
+        smoothstep(0.055, 0.09, progress) * (1 - smoothstep(0.9, 0.94, progress));
+      const cardOpacity = entry * exit * passageVisibility;
+      const outro = smoothstep(0.89, 1, progress);
+      const theme = themes[themeIndex];
+      setTheme(themeIndex);
+
+      context.clearRect(0, 0, width, height);
+      const backdrop = context.createRadialGradient(
+        width * 0.5,
+        height * 0.48,
+        0,
+        width * 0.5,
+        height * 0.48,
+        Math.max(width, height) * 0.75,
+      );
+      backdrop.addColorStop(0, `rgba(${theme.color.join(",")},0.065)`);
+      backdrop.addColorStop(0.5, "rgba(5, 39, 54, 0.035)");
+      backdrop.addColorStop(1, "rgba(1, 8, 14, 0)");
+      context.fillStyle = backdrop;
+      context.fillRect(0, 0, width, height);
+
+      context.save();
+      context.globalCompositeOperation = "screen";
+      stars.forEach((star, starIndex) => {
+        const starTime = state.paused ? 0 : time * 0.00012;
+        const x = star.x * width + Math.sin(starTime + star.pulse) * 8 * star.depth;
+        const shiftedY = star.y + story * star.depth * 0.36;
+        const y = (shiftedY - Math.floor(shiftedY)) * height;
+        const pulse = 0.45 + Math.sin(starTime * 8 + star.pulse) * 0.18;
+        context.fillStyle = `rgba(144, 226, 255,${pulse * (0.22 + star.depth * 0.32)})`;
+        context.beginPath();
+        context.arc(x, y, star.size * (0.55 + star.depth), 0, TAU);
+        context.fill();
+        if (starIndex % 19 === 0) {
+          drawGlow(
+            context,
+            x,
+            y,
+            star.size * (3.5 + star.depth * 2.5),
+            [112, 202, 255],
+            pulse * 0.44,
+          );
+        }
+      });
+      context.restore();
+
+      shards.forEach((shard, index) => {
+        drawShard(shard, index, progress, time, themeIndex, outro);
+      });
+
+      if (outro > 0.02) {
+        const cx = width * 0.5;
+        const cy = height * (width < 900 ? 0.45 : 0.49);
+        drawGlow(context, cx, cy, Math.min(width, height) * 0.25, [112, 202, 255], outro);
+        context.save();
+        context.globalAlpha = outro * 0.28;
+        context.strokeStyle = "rgba(120, 255, 230, 0.44)";
+        for (let ring = 1; ring <= 4; ring += 1) {
+          context.beginPath();
+          context.ellipse(
+            cx,
+            cy + Math.min(width, height) * 0.2,
+            Math.min(width, height) * 0.08 * ring,
+            7 + ring * 3,
+            0,
+            0,
+            TAU,
+          );
+          context.stroke();
+        }
+        context.restore();
+      }
+
+      const direction = theme.direction;
+      const enterX = (1 - entry) * direction * width * 0.42;
+      const exitX = (1 - exit) * -direction * width * 0.34;
+      const cardX = enterX + exitX;
+      const cardY =
+        (1 - entry) * height * 0.12 -
+        (1 - exit) * height * 0.13 +
+        Math.sin((state.paused ? 0 : time * 0.0004) + themeIndex) * 6 * cardOpacity;
+      const rotationY = (1 - entry) * direction * 68 + (1 - exit) * -direction * 54;
+      const rotationX = (1 - entry) * -18 + (1 - exit) * 16;
+      const rotationZ = (1 - entry) * direction * 8 + (1 - exit) * -direction * 6;
+      const cardScale = lerp(0.56, 1, entry) * lerp(1, 0.66, 1 - exit);
+      card.style.opacity = cardOpacity.toFixed(3);
+      card.style.transform =
+        `translate(-50%, -50%) translate3d(${cardX.toFixed(1)}px, ${cardY.toFixed(1)}px, 0) ` +
+        `perspective(1100px) rotateX(${rotationX.toFixed(2)}deg) ` +
+        `rotateY(${rotationY.toFixed(2)}deg) rotateZ(${rotationZ.toFixed(2)}deg) ` +
+        `scale(${cardScale.toFixed(3)})`;
+
+      if (cardOpacity > 0.01) drawTopic(time, themeIndex, localProgress);
+      if (depthReadout) depthReadout.textContent = `DEPTH / ${progress.toFixed(2)}`;
+      if (phaseReadout) {
+        phaseReadout.textContent =
+          progress < 0.075
+            ? "PHASE / FRACTURE"
+            : progress > 0.89
+              ? "PHASE / REASSEMBLE"
+              : `THEME / ${theme.number}`;
+      }
+
+      lastProgress = progress;
+      lastDrawTime = time;
+      needsPaint = false;
+    };
+
+    resize();
+    watchSize(canvas, resize);
+    watchSize(card, () => {
+      topicMetrics = sizeCanvas(topicCanvas, topicContext, 1.5, true);
+      needsPaint = true;
+    });
+    setTheme(0);
     return { draw };
   }
 
@@ -1072,11 +1599,12 @@
     setupMotionControl();
     setupScrollSystems();
     const ambient = createAmbientField();
+    const crystal = createCrystalPassage();
     const wave = createWaveLab();
     const orbit = createOrbitLab();
     const spiral = createSpiralLab();
     const fractal = createFractalLab();
-    const labs = { ambient, wave, orbit, spiral, fractal };
+    const labs = { ambient, crystal, wave, orbit, spiral, fractal };
     setupGlobalActions(labs);
 
     const frame = (now) => {
@@ -1085,6 +1613,7 @@
       if (!state.paused) state.elapsed += delta;
 
       ambient.draw(state.elapsed, delta);
+      if (state.visible.has("crystal-passage")) crystal.draw(state.elapsed);
       if (state.visible.has("wave")) wave.draw(state.elapsed);
       if (state.visible.has("orbit")) orbit.draw(state.elapsed);
       if (state.visible.has("spiral")) spiral.draw(state.elapsed);

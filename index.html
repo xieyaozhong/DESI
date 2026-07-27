@@ -75,7 +75,7 @@
             看波紋如何成為軌道、螺旋與無限。
           </p>
           <div class="hero-actions">
-            <a id="start-explore" class="button button-primary" href="#wave">
+            <a id="start-explore" class="button button-primary" href="#crystal-passage">
               <span>開始探索</span>
               <b aria-hidden="true">↘</b>
             </a>
@@ -97,11 +97,81 @@
           <div class="orbital-index">00 / ORIGIN</div>
         </div>
 
-        <a class="scroll-cue" href="#wave">
+        <a class="scroll-cue" href="#crystal-passage">
           <span>滑動探索</span>
           <i aria-hidden="true"></i>
           <small>SCROLL</small>
         </a>
+      </section>
+
+      <section
+        id="crystal-passage"
+        class="crystal-passage"
+        aria-labelledby="crystal-passage-title"
+      >
+        <div class="crystal-sticky">
+          <canvas id="crystal-canvas" aria-hidden="true"></canvas>
+
+          <div class="crystal-archive-head" aria-hidden="true">
+            <span>CRYSTAL ARCHIVE</span>
+            <span>SCROLL-SEQUENCED / 04 FRAGMENTS</span>
+          </div>
+
+          <div id="crystal-card-shell" class="crystal-card-shell" aria-hidden="true">
+            <div class="crystal-topic-card">
+              <canvas id="crystal-topic-canvas"></canvas>
+              <div class="crystal-card-glass"></div>
+              <div class="crystal-card-copy">
+                <p>
+                  <span id="crystal-number">01</span>
+                  <span id="crystal-code">SUPERPOSITION</span>
+                </p>
+                <h2 id="crystal-title">相遇的波</h2>
+                <div class="crystal-card-meta">
+                  <span id="crystal-formula">H = ψ₁ + ψ₂</span>
+                  <span id="crystal-signal">SIGNAL / INTERFERENCE</span>
+                </div>
+                <p id="crystal-description">兩個波源在水面相遇，亮暗之間留下相位的指紋。</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="crystal-theme-rail" aria-hidden="true">
+            <span class="is-active" data-crystal-rail="0"><i>01</i> 波紋</span>
+            <span data-crystal-rail="1"><i>02</i> 軌道</span>
+            <span data-crystal-rail="2"><i>03</i> 成長</span>
+            <span data-crystal-rail="3"><i>04</i> 無限</span>
+          </div>
+
+          <div class="crystal-depth-readout" aria-hidden="true">
+            <span id="crystal-depth">DEPTH / 0.00</span>
+            <span id="crystal-phase">PHASE / ASSEMBLE</span>
+          </div>
+
+          <div class="crystal-scroll-hint" aria-hidden="true">
+            <span>滑動解讀碎片</span>
+            <i></i>
+            <small>SCROLL TO DECODE</small>
+          </div>
+
+          <div class="crystal-semantic">
+            <h2 id="crystal-passage-title">四枚水晶，四個數學世界</h2>
+            <p>滑動時，水晶碎塊依序顯示波的干涉、李薩如軌道、對數螺旋與 Mandelbrot 集合。</p>
+            <ol>
+              <li>相遇的波：觀察兩個波源如何疊加。</li>
+              <li>波成為軌道：觀察整數頻率比例畫出封閉曲線。</li>
+              <li>會成長的螺旋：觀察固定倍率如何形成對數螺旋。</li>
+              <li>一條規則的無限：觀察簡單迭代如何形成 Mandelbrot 邊界。</li>
+            </ol>
+          </div>
+
+          <div class="crystal-static-list" aria-hidden="true">
+            <article><span>01</span><strong>相遇的波</strong><small>H = ψ₁ + ψ₂</small></article>
+            <article><span>02</span><strong>波成為軌道</strong><small>x = sin(at + δ)</small></article>
+            <article><span>03</span><strong>會成長的螺旋</strong><small>r = r₀eᵇᶿ</small></article>
+            <article><span>04</span><strong>一條規則的無限</strong><small>zₙ₊₁ = zₙ² + c</small></article>
+          </div>
+        </div>
       </section>
 
       <section id="wave" class="chapter section-shell" aria-labelledby="wave-title">
