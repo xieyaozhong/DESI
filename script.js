@@ -374,23 +374,32 @@
     const topicContext = safeContext(topicCanvas);
     const card = $("#crystal-card-shell");
     const sticky = $(".crystal-sticky", section);
+    const rail = $("#crystal-theme-rail");
     const number = $("#crystal-number");
     const code = $("#crystal-code");
     const title = $("#crystal-title");
     const formula = $("#crystal-formula");
     const signal = $("#crystal-signal");
     const description = $("#crystal-description");
+    const faceLabel = $("#crystal-face");
     const depthReadout = $("#crystal-depth");
     const phaseReadout = $("#crystal-phase");
-    const railItems = $$("[data-crystal-rail]");
+    const drawStatus = $("#crystal-draw-status");
+    const reshuffle = $("#crystal-reshuffle");
+    const drawAnnouncement = $("#crystal-draw-announcement");
+    const semanticList = $("#crystal-semantic-list");
+    const staticList = $(".crystal-static-list", section);
+    let railItems = [];
 
     if (!section || !canvas || !context || !topicCanvas || !topicContext || !card) {
       return { draw: () => {} };
     }
 
-    const themes = [
+    const themeCatalog = [
       {
-        number: "01",
+        id: "wave",
+        renderer: "wave",
+        label: "波紋",
         code: "SUPERPOSITION",
         title: "相遇的波",
         formula: "H = ψ₁ + ψ₂",
@@ -400,7 +409,9 @@
         direction: -1,
       },
       {
-        number: "02",
+        id: "orbit",
+        renderer: "orbit",
+        label: "軌道",
         code: "HARMONIC ORBIT",
         title: "波成為軌道",
         formula: "x = sin(at + δ)",
@@ -410,7 +421,9 @@
         direction: 1,
       },
       {
-        number: "03",
+        id: "spiral",
+        renderer: "spiral",
+        label: "成長",
         code: "EXPONENTIAL GROWTH",
         title: "會成長的螺旋",
         formula: "r = r₀eᵇᶿ",
@@ -420,7 +433,9 @@
         direction: -1,
       },
       {
-        number: "04",
+        id: "fractal",
+        renderer: "fractal",
+        label: "無限",
         code: "INFINITE BOUNDARY",
         title: "一條規則的無限",
         formula: "zₙ₊₁ = zₙ² + c",
@@ -429,7 +444,135 @@
         color: [166, 140, 255],
         direction: 1,
       },
+      {
+        id: "modular",
+        renderer: "modular",
+        label: "模乘",
+        code: "MODULAR CHORDS",
+        title: "模乘的弦",
+        formula: "j = mk mod N",
+        signal: "MODULUS / 180",
+        description: "一個乘數重新配對圓周上的點，直線便共同描出流動的包絡線。",
+        color: [255, 143, 190],
+        direction: -1,
+      },
+      {
+        id: "fourier",
+        renderer: "fourier",
+        label: "頻譜",
+        code: "FOURIER EPICYCLES",
+        title: "拆解一段波",
+        formula: "f(t) = Σaₙeⁱⁿᵗ",
+        signal: "HARMONICS / 08",
+        description: "不同速度的旋轉向量首尾相接，把複雜輪廓拆回一組純粹週期。",
+        color: [255, 191, 110],
+        direction: 1,
+      },
+      {
+        id: "lorenz",
+        renderer: "lorenz",
+        label: "混沌",
+        code: "CHAOTIC ATTRACTOR",
+        title: "混沌的蝴蝶",
+        formula: "x′ = σ(y − x)",
+        signal: "LORENZ / ρ 28",
+        description: "兩個幾乎相同的起點，在決定論的流場裡逐步分離成蝴蝶雙翼。",
+        color: [95, 245, 175],
+        direction: -1,
+      },
+      {
+        id: "cellular",
+        renderer: "cellular",
+        label: "胞格",
+        code: "CELLULAR AUTOMATON",
+        title: "一列生成世界",
+        formula: "Rule 30",
+        signal: "NEIGHBORS / 111 → 0",
+        description: "每一格只查看左右鄰居，簡單的局部規則卻長出不可預測的整體。",
+        color: [120, 170, 255],
+        direction: 1,
+      },
+      {
+        id: "ulam",
+        renderer: "ulam",
+        label: "質數",
+        code: "PRIME SPIRAL",
+        title: "質數的星圖",
+        formula: "p ∈ ℙ",
+        signal: "ULAM / 1 → 2025",
+        description: "把自然數繞成方形螺旋，質數會在看似隨機的星點中排出斜線。",
+        color: [242, 248, 181],
+        direction: -1,
+      },
+      {
+        id: "rose",
+        renderer: "rose",
+        label: "對稱",
+        code: "POLAR SYMMETRY",
+        title: "極座標花園",
+        formula: "r = cos(kθ)",
+        signal: "PETALS / 07",
+        description: "半徑隨角度規律震盪，一條線便在極座標平面開出對稱花瓣。",
+        color: [224, 126, 255],
+        direction: 1,
+      },
     ];
+    const DRAW_COUNT = 6;
+    const DECK_STORAGE_KEY = "desi.crystal.deck.v3";
+    const themeById = new Map(themeCatalog.map((theme) => [theme.id, theme]));
+
+    const makeRandomSeed = () => {
+      if (window.crypto?.getRandomValues) {
+        return window.crypto.getRandomValues(new Uint32Array(1))[0];
+      }
+      return Math.floor(Math.random() * 0xffffffff);
+    };
+
+    const mulberry32 = (seed) => () => {
+      let value = (seed += 0x6d2b79f5);
+      value = Math.imul(value ^ (value >>> 15), value | 1);
+      value ^= value + Math.imul(value ^ (value >>> 7), value | 61);
+      return ((value ^ (value >>> 14)) >>> 0) / 4294967296;
+    };
+
+    const createThemeDeck = (forceNew = false) => {
+      if (!forceNew) {
+        try {
+          const stored = JSON.parse(sessionStorage.getItem(DECK_STORAGE_KEY) || "null");
+          const uniqueIds = new Set(stored?.ids);
+          if (
+            stored?.version === 3 &&
+            Array.isArray(stored.ids) &&
+            stored.ids.length === DRAW_COUNT &&
+            uniqueIds.size === DRAW_COUNT &&
+            stored.ids.every((id) => themeById.has(id))
+          ) {
+            return stored.ids.map((id) => themeById.get(id));
+          }
+        } catch {
+          // Storage can be unavailable in privacy modes; a memory-only deck still works.
+        }
+      }
+
+      const random = mulberry32(makeRandomSeed());
+      const ids = themeCatalog.map((theme) => theme.id);
+      for (let index = ids.length - 1; index > 0; index -= 1) {
+        const target = Math.floor(random() * (index + 1));
+        [ids[index], ids[target]] = [ids[target], ids[index]];
+      }
+      const selectedIds = ids.slice(0, DRAW_COUNT);
+      try {
+        sessionStorage.setItem(
+          DECK_STORAGE_KEY,
+          JSON.stringify({ version: 3, ids: selectedIds }),
+        );
+      } catch {
+        // The selected deck remains valid for the current page even without storage.
+      }
+      return selectedIds.map((id) => themeById.get(id));
+    };
+
+    let themes = createThemeDeck();
 
     let metrics = { width: 1, height: 1, dpr: 1 };
     let topicMetrics = { width: 1, height: 1, dpr: 1 };
@@ -441,6 +584,8 @@
     let needsPaint = true;
     let storyTop = 0;
     let storyTravel = 1;
+    let lastFacetStyle = "";
+    let lastFacing = "";
 
     const seeded = (index, salt = 0) => {
       const value = Math.sin((index + 1) * 12.9898 + salt * 78.233) * 43758.5453;
@@ -493,16 +638,71 @@
 
     const getProgress = () => clamp((window.scrollY - storyTop) / storyTravel, 0, 1);
 
+    const renderRail = () => {
+      if (rail) {
+        const fragment = document.createDocumentFragment();
+        themes.forEach((theme, index) => {
+          const item = document.createElement("span");
+          const marker = document.createElement("i");
+          marker.textContent = String(index + 1).padStart(2, "0");
+          item.dataset.crystalRail = String(index);
+          item.append(marker, document.createTextNode(` ${theme.label}`));
+          fragment.append(item);
+        });
+        rail.replaceChildren(fragment);
+        railItems = $$("[data-crystal-rail]", rail);
+      }
+      if (drawStatus) {
+        drawStatus.textContent =
+          `RANDOM DRAW / ${String(themes.length).padStart(2, "0")} OF ` +
+          String(themeCatalog.length).padStart(2, "0");
+      }
+      if (semanticList) {
+        const fragment = document.createDocumentFragment();
+        themes.forEach((theme) => {
+          const item = document.createElement("li");
+          item.textContent = `${theme.title}：${theme.description}`;
+          fragment.append(item);
+        });
+        semanticList.replaceChildren(fragment);
+      }
+      if (staticList) {
+        const fragment = document.createDocumentFragment();
+        themes.forEach((theme, index) => {
+          const article = document.createElement("article");
+          const marker = document.createElement("span");
+          const heading = document.createElement("strong");
+          const equation = document.createElement("small");
+          marker.textContent = String(index + 1).padStart(2, "0");
+          heading.textContent = theme.title;
+          equation.textContent = theme.formula;
+          article.append(marker, heading, equation);
+          fragment.append(article);
+        });
+        staticList.replaceChildren(fragment);
+      }
+    };
+
     const setTheme = (index) => {
       if (index === activeTheme) return;
       activeTheme = index;
       const theme = themes[index];
-      if (number) number.textContent = theme.number;
+      const sequenceNumber = String(index + 1).padStart(2, "0");
+      if (number) number.textContent = sequenceNumber;
       if (code) code.textContent = theme.code;
       if (title) title.textContent = theme.title;
       if (formula) formula.textContent = theme.formula;
       if (signal) signal.textContent = theme.signal;
       if (description) description.textContent = theme.description;
+      if (faceLabel) faceLabel.textContent = `FACE ${sequenceNumber} / ${themes.length}`;
+      topicCanvas.setAttribute(
+        "aria-label",
+        `${theme.title}：${theme.description}`,
+      );
+      const color = theme.color.join(",");
+      card.style.setProperty("--crystal-accent", `rgb(${color})`);
+      card.style.setProperty("--crystal-accent-soft", `rgba(${color},0.2)`);
+      card.dataset.theme = theme.id;
       railItems.forEach((item, railIndex) => {
         item.classList.toggle("is-active", railIndex === index);
       });
@@ -531,6 +731,36 @@
       target.stroke(path);
       target.restore();
     };
+
+    const primeLimit = 2025;
+    const primeFlags = new Uint8Array(primeLimit + 1);
+    primeFlags.fill(1, 2);
+    for (let divisor = 2; divisor * divisor <= primeLimit; divisor += 1) {
+      if (!primeFlags[divisor]) continue;
+      for (let value = divisor * divisor; value <= primeLimit; value += divisor) {
+        primeFlags[value] = 0;
+      }
+    }
+    const ulamPoints = [];
+    let ulamX = 0;
+    let ulamY = 0;
+    let ulamDx = 1;
+    let ulamDy = 0;
+    let ulamLegLength = 1;
+    let ulamLegRemaining = 1;
+    let ulamTurns = 0;
+    for (let value = 1; value <= primeLimit; value += 1) {
+      if (primeFlags[value]) ulamPoints.push([ulamX, ulamY, value]);
+      ulamX += ulamDx;
+      ulamY += ulamDy;
+      ulamLegRemaining -= 1;
+      if (ulamLegRemaining === 0) {
+        [ulamDx, ulamDy] = [-ulamDy, ulamDx];
+        ulamTurns += 1;
+        if (ulamTurns % 2 === 0) ulamLegLength += 1;
+        ulamLegRemaining = ulamLegLength;
+      }
+    }
 
     const drawTopic = (time, themeIndex, localProgress) => {
       const { width, height } = topicMetrics;
@@ -569,7 +799,7 @@
         topicContext.stroke();
       }
 
-      if (themeIndex === 0) {
+      if (theme.renderer === "wave") {
         const temporal = state.paused ? 0.8 : time * 0.0012;
         topicContext.globalCompositeOperation = "screen";
         for (let band = 0; band < 15; band += 1) {
@@ -593,7 +823,7 @@
         }
         drawGlow(topicContext, width * 0.34, height * 0.32, 32, rgb, 0.8);
         drawGlow(topicContext, width * 0.7, height * 0.4, 32, [166, 140, 255], 0.8);
-      } else if (themeIndex === 1) {
+      } else if (theme.renderer === "orbit") {
         const path = new Path2D();
         const cx = width * 0.58;
         const cy = height * 0.39;
@@ -611,15 +841,16 @@
         const dotX = cx + Math.sin(3 * playhead + Math.PI / 2) * rx;
         const dotY = cy + Math.sin(2 * playhead) * ry;
         drawGlow(topicContext, dotX, dotY, 28, [120, 255, 230], 1);
-      } else if (themeIndex === 2) {
+      } else if (theme.renderer === "spiral") {
         const path = new Path2D();
         const cx = width * 0.6;
         const cy = height * 0.39;
         const maximum = Math.min(width, height) * 0.38;
+        const spiralRotation = state.paused ? 0 : time * 0.000035;
         for (let index = 0; index <= 560; index += 1) {
           const theta = (index / 560) * TAU * 6.2;
           const radius = maximum * Math.exp(0.078 * (theta - TAU * 6.2));
-          const angle = theta - 0.7 + (state.paused ? 0 : time * 0.000035);
+          const angle = theta - 0.7 + spiralRotation;
           const x = cx + Math.cos(angle) * radius;
           const y = cy + Math.sin(angle) * radius;
           if (!index) path.moveTo(x, y);
@@ -632,15 +863,15 @@
           topicContext.fillStyle = `rgba(${rgb.join(",")},${0.28 + step * 0.03})`;
           topicContext.beginPath();
           topicContext.arc(
-            cx + Math.cos(theta - 0.7) * radius,
-            cy + Math.sin(theta - 0.7) * radius,
+            cx + Math.cos(theta - 0.7 + spiralRotation) * radius,
+            cy + Math.sin(theta - 0.7 + spiralRotation) * radius,
             1.2 + step * 0.08,
             0,
             TAU,
           );
           topicContext.fill();
         }
-      } else {
+      } else if (theme.renderer === "fractal") {
         const cx = width * 0.61;
         const cy = height * 0.38;
         const size = Math.min(width, height) * 0.34;
@@ -669,9 +900,219 @@
           );
           topicContext.stroke();
         }
+      } else if (theme.renderer === "modular") {
+        const cx = width * 0.58;
+        const cy = height * 0.4;
+        const radius = Math.min(width, height) * 0.29;
+        const pointCount = 180;
+        const multiplier = state.paused
+          ? 3.4
+          : 3.6 + Math.sin(time * 0.00016) * 2.2;
+        topicContext.save();
+        topicContext.globalCompositeOperation = "screen";
+        topicContext.strokeStyle = `rgba(${rgb.join(",")},0.16)`;
+        topicContext.lineWidth = 0.72;
+        topicContext.beginPath();
+        for (let index = 0; index < pointCount; index += 1) {
+          const sourceAngle = (index / pointCount) * TAU - Math.PI / 2;
+          const targetAngle =
+            (((index * multiplier) % pointCount) / pointCount) * TAU - Math.PI / 2;
+          topicContext.moveTo(
+            cx + Math.cos(sourceAngle) * radius,
+            cy + Math.sin(sourceAngle) * radius,
+          );
+          topicContext.lineTo(
+            cx + Math.cos(targetAngle) * radius,
+            cy + Math.sin(targetAngle) * radius,
+          );
+        }
+        topicContext.stroke();
+        topicContext.strokeStyle = `rgba(${rgb.join(",")},0.58)`;
+        topicContext.beginPath();
+        topicContext.arc(cx, cy, radius, 0, TAU);
+        topicContext.stroke();
+        for (let index = 0; index < pointCount; index += 6) {
+          const angle = (index / pointCount) * TAU - Math.PI / 2;
+          topicContext.fillStyle = "rgba(230,255,252,0.7)";
+          topicContext.beginPath();
+          topicContext.arc(
+            cx + Math.cos(angle) * radius,
+            cy + Math.sin(angle) * radius,
+            1.1,
+            0,
+            TAU,
+          );
+          topicContext.fill();
+        }
+        topicContext.restore();
+      } else if (theme.renderer === "fourier") {
+        const cx = width * 0.43;
+        const cy = height * 0.38;
+        const phase = state.paused ? 0.9 : time * 0.00045;
+        const baseRadius = Math.min(width, height) * 0.14;
+        const harmonicCount = 8;
+        let armX = cx;
+        let armY = cy;
+        topicContext.save();
+        topicContext.globalCompositeOperation = "screen";
+        for (let harmonic = 1; harmonic <= harmonicCount; harmonic += 1) {
+          const radius = baseRadius / Math.pow(harmonic, 0.78);
+          const previousX = armX;
+          const previousY = armY;
+          const angle = phase * harmonic + harmonic * 0.58;
+          armX += Math.cos(angle) * radius;
+          armY += Math.sin(angle) * radius;
+          topicContext.strokeStyle = `rgba(${rgb.join(",")},${0.18 + harmonic * 0.035})`;
+          topicContext.lineWidth = 0.85;
+          topicContext.beginPath();
+          topicContext.arc(previousX, previousY, radius, 0, TAU);
+          topicContext.stroke();
+          topicContext.strokeStyle = "rgba(226,255,252,0.42)";
+          topicContext.beginPath();
+          topicContext.moveTo(previousX, previousY);
+          topicContext.lineTo(armX, armY);
+          topicContext.stroke();
+        }
+        drawGlow(topicContext, armX, armY, 24, rgb, 0.9);
+        const trace = new Path2D();
+        for (let step = 0; step <= 440; step += 1) {
+          const angle = (step / 440) * TAU;
+          let x = width * 0.67;
+          let y = cy;
+          for (let harmonic = 1; harmonic <= harmonicCount; harmonic += 1) {
+            const radius = baseRadius / Math.pow(harmonic, 0.78);
+            x += Math.cos(angle * harmonic + harmonic * 0.58) * radius * 0.72;
+            y += Math.sin(angle * harmonic + harmonic * 0.58) * radius * 0.72;
+          }
+          if (!step) trace.moveTo(x, y);
+          else trace.lineTo(x, y);
+        }
+        strokeMotif(topicContext, trace, rgb);
+        topicContext.restore();
+      } else if (theme.renderer === "lorenz") {
+        const path = new Path2D();
+        const cx = width * 0.6;
+        const cy = height * 0.39;
+        const scale = Math.min(width, height) * 0.012;
+        const rotation = state.paused ? 0.42 : time * 0.000035;
+        let x = 0.1;
+        let y = 0;
+        let z = 0;
+        const dt = 0.006;
+        for (let step = 0; step < 1900; step += 1) {
+          const nextX = x + 10 * (y - x) * dt;
+          const nextY = y + (x * (28 - z) - y) * dt;
+          const nextZ = z + (x * y - (8 / 3) * z) * dt;
+          x = nextX;
+          y = nextY;
+          z = nextZ;
+          if (step < 130 || step % 2) continue;
+          const rotatedX = x * Math.cos(rotation) - y * Math.sin(rotation);
+          const px = cx + rotatedX * scale;
+          const py = cy + (z - 25) * scale * 0.9;
+          if (step === 130) path.moveTo(px, py);
+          else path.lineTo(px, py);
+        }
+        strokeMotif(topicContext, path, rgb);
+        drawGlow(topicContext, cx, cy - scale * 2, 42, rgb, 0.38);
+      } else if (theme.renderer === "cellular") {
+        const columns = width < 520 ? 72 : 96;
+        const rows = 46;
+        const cell = Math.min((width * 0.72) / columns, (height * 0.62) / rows);
+        const startX = width * 0.58 - (columns * cell) / 2;
+        const startY = height * 0.1;
+        let current = new Uint8Array(columns);
+        current[Math.floor(columns / 2)] = 1;
+        const reveal = state.paused
+          ? rows
+          : Math.max(8, Math.floor(((time * 0.018) % rows) + 8));
+        topicContext.save();
+        topicContext.globalCompositeOperation = "screen";
+        for (let row = 0; row < rows; row += 1) {
+          if (row < reveal) {
+            for (let column = 0; column < columns; column += 1) {
+              if (!current[column]) continue;
+              const alpha = 0.28 + (row / rows) * 0.58;
+              topicContext.fillStyle = `rgba(${rgb.join(",")},${alpha})`;
+              topicContext.fillRect(
+                startX + column * cell,
+                startY + row * cell,
+                Math.max(1, cell * 0.72),
+                Math.max(1, cell * 0.72),
+              );
+            }
+          }
+          const next = new Uint8Array(columns);
+          for (let column = 0; column < columns; column += 1) {
+            const left = current[(column - 1 + columns) % columns];
+            const center = current[column];
+            const right = current[(column + 1) % columns];
+            next[column] = left ^ (center | right);
+          }
+          current = next;
+        }
+        topicContext.restore();
+      } else if (theme.renderer === "ulam") {
+        const cx = width * 0.6;
+        const cy = height * 0.4;
+        const extent = Math.ceil(Math.sqrt(primeLimit));
+        const stepSize = Math.min(width, height) * 0.0125;
+        const reveal = state.paused
+          ? primeLimit
+          : 360 + Math.floor((time * 0.11) % (primeLimit - 359));
+        topicContext.save();
+        topicContext.globalCompositeOperation = "screen";
+        ulamPoints.forEach(([x, y, value]) => {
+          if (value > reveal) return;
+          const alpha = 0.28 + (value / primeLimit) * 0.62;
+          topicContext.fillStyle = `rgba(${rgb.join(",")},${alpha})`;
+          topicContext.beginPath();
+          topicContext.arc(
+            cx + x * stepSize,
+            cy + y * stepSize,
+            value % 6 === 1 ? 1.7 : 1.05,
+            0,
+            TAU,
+          );
+          topicContext.fill();
+        });
+        topicContext.strokeStyle = `rgba(${rgb.join(",")},0.12)`;
+        topicContext.strokeRect(
+          cx - (extent * stepSize) / 2,
+          cy - (extent * stepSize) / 2,
+          extent * stepSize,
+          extent * stepSize,
+        );
+        topicContext.restore();
+      } else if (theme.renderer === "rose") {
+        const path = new Path2D();
+        const cx = width * 0.59;
+        const cy = height * 0.39;
+        const maximum = Math.min(width, height) * 0.31;
+        const phase = state.paused ? 0.2 : time * 0.00012;
+        for (let step = 0; step <= 720; step += 1) {
+          const theta = (step / 720) * TAU;
+          const radius = maximum * Math.cos(7 * theta + phase);
+          const x = cx + Math.cos(theta) * radius;
+          const y = cy + Math.sin(theta) * radius;
+          if (!step) path.moveTo(x, y);
+          else path.lineTo(x, y);
+        }
+        strokeMotif(topicContext, path, rgb);
+        for (let petal = 0; petal < 7; petal += 1) {
+          const angle = (petal / 7) * TAU - phase / 7;
+          drawGlow(
+            topicContext,
+            cx + Math.cos(angle) * maximum * 0.62,
+            cy + Math.sin(angle) * maximum * 0.62,
+            18,
+            rgb,
+            0.32,
+          );
+        }
       }
 
-      const scanX = ((state.paused ? localProgress : time * 0.00008) % 1) * width;
+      const scanX = lerp(-0.18, 1.18, smoothstep(0.14, 0.68, localProgress)) * width;
       const scan = topicContext.createLinearGradient(scanX - 80, 0, scanX + 80, 0);
       scan.addColorStop(0, "rgba(255,255,255,0)");
       scan.addColorStop(0.5, "rgba(208,255,250,0.09)");
@@ -851,14 +1292,55 @@
         (1 - entry) * height * 0.12 -
         (1 - exit) * height * 0.13 +
         Math.sin((state.paused ? 0 : time * 0.0004) + themeIndex) * 6 * cardOpacity;
-      const rotationY = (1 - entry) * direction * 68 + (1 - exit) * -direction * 54;
-      const rotationX = (1 - entry) * -18 + (1 - exit) * 16;
+      const settledTilt = entry * exit;
+      const rotationY =
+        (1 - entry) * direction * 68 +
+        (1 - exit) * -direction * 54 +
+        direction * 4.5 * settledTilt;
+      const rotationX =
+        (1 - entry) * -18 + (1 - exit) * 16 + 2.4 * settledTilt;
       const rotationZ = (1 - entry) * direction * 8 + (1 - exit) * -direction * 6;
       const cardScale = lerp(0.56, 1, entry) * lerp(1, 0.66, 1 - exit);
+      const sideRatio = clamp(Math.abs(rotationY) / 68, 0, 1);
+      const sideAlpha = 0.28 + sideRatio * 0.5;
+      const depthOffset = lerp(9, 19, cardOpacity);
+      const depthDirection = rotationY >= 0 ? 1 : -1;
+      const glintX = lerp(-170, 490, smoothstep(0.14, 0.68, localProgress));
+      const sideAlphaValue = sideAlpha.toFixed(3);
+      const depthAlphaValue = (sideAlpha * 0.74).toFixed(3);
+      const edgeAlphaValue = (0.5 + sideRatio * 0.28).toFixed(3);
+      const depthXValue = `${(depthOffset * depthDirection).toFixed(1)}px`;
+      const depthYValue = `${(depthOffset * 0.72).toFixed(1)}px`;
+      const glintValue = `${glintX.toFixed(1)}%`;
+      const facetStrengthValue = (0.08 + sideRatio * 0.12).toFixed(3);
+      const facetStyle = [
+        sideAlphaValue,
+        depthAlphaValue,
+        edgeAlphaValue,
+        depthXValue,
+        depthYValue,
+        glintValue,
+        facetStrengthValue,
+      ].join("|");
       card.style.opacity = cardOpacity.toFixed(3);
+      if (facetStyle !== lastFacetStyle) {
+        lastFacetStyle = facetStyle;
+        card.style.setProperty("--crystal-side-alpha", sideAlphaValue);
+        card.style.setProperty("--crystal-depth-alpha", depthAlphaValue);
+        card.style.setProperty("--crystal-edge-alpha", edgeAlphaValue);
+        card.style.setProperty("--crystal-depth-x", depthXValue);
+        card.style.setProperty("--crystal-depth-y", depthYValue);
+        card.style.setProperty("--crystal-glint-x", glintValue);
+        card.style.setProperty("--crystal-facet-strength", facetStrengthValue);
+      }
+      const facing = rotationY >= 0 ? "right" : "left";
+      if (facing !== lastFacing) {
+        lastFacing = facing;
+        card.dataset.facing = facing;
+      }
       card.style.transform =
         `translate(-50%, -50%) translate3d(${cardX.toFixed(1)}px, ${cardY.toFixed(1)}px, 0) ` +
-        `perspective(1100px) rotateX(${rotationX.toFixed(2)}deg) ` +
+        `rotateX(${rotationX.toFixed(2)}deg) ` +
         `rotateY(${rotationY.toFixed(2)}deg) rotateZ(${rotationZ.toFixed(2)}deg) ` +
         `scale(${cardScale.toFixed(3)})`;
 
@@ -870,7 +1352,7 @@
             ? "PHASE / FRACTURE"
             : progress > 0.89
               ? "PHASE / REASSEMBLE"
-              : `THEME / ${theme.number}`;
+              : `THEME / ${String(themeIndex + 1).padStart(2, "0")}`;
       }
 
       lastProgress = progress;
@@ -884,6 +1366,18 @@
       topicMetrics = sizeCanvas(topicCanvas, topicContext, 1.5, true);
       needsPaint = true;
     });
+    reshuffle?.addEventListener("click", () => {
+      themes = createThemeDeck(true);
+      activeTheme = -1;
+      renderRail();
+      setTheme(0);
+      needsPaint = true;
+      if (drawAnnouncement) {
+        drawAnnouncement.textContent =
+          `已重新抽取：${themes.map((theme) => theme.title).join("、")}。`;
+      }
+    });
+    renderRail();
     setTheme(0);
     return { draw };
   }

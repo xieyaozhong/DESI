@@ -306,6 +306,18 @@ button {
   color: var(--pearl);
 }
 
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
 .chapter-nav a[aria-current="true"]::after {
   transform: scaleX(1);
 }
@@ -663,7 +675,7 @@ button {
 .crystal-passage {
   position: relative;
   width: 100%;
-  height: 520svh;
+  height: 720svh;
 }
 
 .crystal-sticky {
@@ -673,6 +685,8 @@ button {
   height: 100svh;
   overflow: hidden;
   isolation: isolate;
+  perspective: 1200px;
+  perspective-origin: 50% 46%;
   background:
     radial-gradient(circle at 50% 48%, rgba(22, 101, 130, 0.18), transparent 37%),
     linear-gradient(180deg, rgba(2, 10, 18, 0.72), rgba(1, 8, 14, 0.9));
@@ -730,33 +744,160 @@ button {
   letter-spacing: 0.18em;
 }
 
-.crystal-archive-head span:first-child {
+.crystal-archive-head > span:first-child {
   color: var(--aqua);
 }
 
+.crystal-draw-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.crystal-reshuffle {
+  min-height: 30px;
+  padding: 5px 10px;
+  border: 1px solid rgba(120, 255, 230, 0.26);
+  border-radius: 0;
+  background: rgba(4, 25, 35, 0.5);
+  color: rgba(218, 247, 245, 0.68);
+  font: inherit;
+  font-size: 0.48rem;
+  letter-spacing: 0.14em;
+  cursor: pointer;
+  transition:
+    color 180ms ease,
+    border-color 180ms ease,
+    background 180ms ease,
+    transform 180ms ease;
+}
+
+.crystal-reshuffle:hover,
+.crystal-reshuffle:focus-visible {
+  border-color: var(--aqua);
+  background: rgba(28, 95, 105, 0.18);
+  color: var(--pearl);
+}
+
+.crystal-reshuffle:active {
+  transform: translateY(1px);
+}
+
 .crystal-card-shell {
+  --crystal-accent: rgb(120, 255, 230);
+  --crystal-accent-soft: rgba(120, 255, 230, 0.2);
+  --crystal-side-alpha: 0.38;
+  --crystal-depth-x: 16px;
+  --crystal-depth-y: 22px;
+  --crystal-face-outline: polygon(7% 0, 86% 4%, 100% 29%, 92% 88%, 71% 100%, 5% 92%, 0 21%);
+  --crystal-topic-face: polygon(16% 10%, 78% 8%, 90% 28%, 82% 75%, 68% 87%, 13% 81%, 10% 25%);
+  --crystal-glint-x: -160%;
   position: absolute;
   z-index: 4;
   top: 50%;
   left: 50%;
   width: clamp(360px, 53vw, 720px);
   aspect-ratio: 1.62;
-  padding: 1px;
-  clip-path: polygon(7% 0, 86% 4%, 100% 29%, 92% 88%, 71% 100%, 5% 92%, 0 21%);
-  background: linear-gradient(
-    125deg,
-    rgba(232, 255, 253, 0.84),
-    rgba(112, 202, 255, 0.18) 31%,
-    rgba(166, 140, 255, 0.72) 78%,
-    rgba(120, 255, 230, 0.55)
-  );
-  filter:
-    drop-shadow(0 28px 50px rgba(0, 0, 0, 0.44))
-    drop-shadow(0 0 24px rgba(80, 194, 228, 0.26));
   opacity: 0;
-  transform: translate3d(-50%, -50%, 0) perspective(1100px) rotateY(70deg) scale(0.6);
+  transform: translate3d(-50%, -50%, 0) rotateY(70deg) scale(0.6);
+  transform-style: preserve-3d;
   transform-origin: center;
-  will-change: transform, opacity, filter;
+  will-change: transform, opacity;
+}
+
+.crystal-prism {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+}
+
+.crystal-shard-depth,
+.crystal-shard-body,
+.crystal-shard-facet,
+.crystal-topic-face,
+.crystal-edge-network {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  backface-visibility: hidden;
+}
+
+.crystal-shard-depth {
+  clip-path: var(--crystal-face-outline);
+  background:
+    linear-gradient(148deg, rgba(58, 142, 164, 0.38), rgba(2, 9, 16, 0.96) 64%),
+    var(--crystal-accent-soft);
+  box-shadow: 0 0 28px var(--crystal-accent-soft);
+  opacity: var(--crystal-depth-alpha, 0.28);
+  transform: translate3d(var(--crystal-depth-x), var(--crystal-depth-y), -34px);
+}
+
+.crystal-shard-body {
+  clip-path: var(--crystal-face-outline);
+  background:
+    conic-gradient(
+      from 132deg at 52% 48%,
+      rgba(226, 255, 253, 0.55),
+      var(--crystal-accent-soft) 14%,
+      rgba(19, 56, 76, 0.9) 31%,
+      rgba(118, 93, 190, 0.48) 58%,
+      rgba(2, 11, 18, 0.96) 76%,
+      rgba(205, 255, 247, 0.45)
+    );
+  filter:
+    drop-shadow(0 30px 52px rgba(0, 0, 0, 0.62))
+    drop-shadow(0 0 24px var(--crystal-accent-soft));
+  transform: translateZ(2px);
+}
+
+.crystal-shard-facet {
+  z-index: 2;
+  opacity: var(--crystal-side-alpha);
+  transform: translateZ(10px);
+}
+
+.crystal-shard-facet-left {
+  clip-path: polygon(7% 0, 16% 10%, 10% 25%, 13% 81%, 5% 92%, 0 21%);
+  background:
+    linear-gradient(100deg, rgba(225, 255, 252, 0.48), transparent 36%),
+    linear-gradient(155deg, var(--crystal-accent-soft), rgba(2, 14, 22, 0.92));
+}
+
+.crystal-shard-facet-right {
+  clip-path: polygon(86% 4%, 100% 29%, 92% 88%, 82% 75%, 90% 28%, 78% 8%);
+  background:
+    linear-gradient(250deg, rgba(166, 140, 255, 0.58), transparent 42%),
+    linear-gradient(128deg, var(--crystal-accent-soft), rgba(2, 9, 17, 0.96));
+}
+
+.crystal-shard-facet-bottom {
+  clip-path: polygon(13% 81%, 68% 87%, 82% 75%, 92% 88%, 71% 100%, 5% 92%);
+  background:
+    linear-gradient(180deg, var(--crystal-accent-soft), rgba(4, 10, 20, 0.96)),
+    linear-gradient(90deg, rgba(166, 140, 255, 0.46), transparent 66%);
+}
+
+.crystal-card-shell[data-facing="right"] .crystal-shard-facet-left,
+.crystal-card-shell[data-facing="left"] .crystal-shard-facet-right {
+  filter: brightness(0.58) saturate(0.76);
+}
+
+.crystal-card-shell[data-facing="right"] .crystal-shard-facet-right,
+.crystal-card-shell[data-facing="left"] .crystal-shard-facet-left {
+  filter: brightness(1.32) saturate(1.18);
+}
+
+.crystal-topic-face {
+  z-index: 3;
+  overflow: hidden;
+  clip-path: var(--crystal-topic-face);
+  background:
+    linear-gradient(145deg, rgba(220, 255, 252, 0.2), transparent 22%),
+    rgba(2, 14, 23, 0.94);
+  box-shadow:
+    inset 0 0 0 1px rgba(219, 255, 252, 0.42),
+    inset 0 0 48px rgba(120, 203, 227, 0.08);
+  transform: translateZ(24px);
 }
 
 .crystal-topic-card {
@@ -764,7 +905,6 @@ button {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  clip-path: inherit;
   background:
     radial-gradient(circle at 70% 28%, rgba(88, 205, 237, 0.22), transparent 42%),
     rgba(3, 19, 29, 0.94);
@@ -781,7 +921,9 @@ button {
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(112deg, rgba(235, 255, 255, 0.16), transparent 19%, transparent 62%, rgba(165, 139, 255, 0.12)),
+    linear-gradient(148deg, rgba(235, 255, 255, 0.18), transparent 19%),
+    linear-gradient(34deg, transparent 58%, rgba(166, 140, 255, var(--crystal-facet-strength)) 59%, transparent 76%),
+    linear-gradient(112deg, transparent 46%, var(--crystal-accent-soft) 47%, transparent 66%),
     linear-gradient(180deg, transparent 36%, rgba(1, 10, 17, 0.88));
   mix-blend-mode: screen;
 }
@@ -789,21 +931,62 @@ button {
 .crystal-card-glass::before {
   content: "";
   position: absolute;
-  top: -35%;
-  left: -24%;
-  width: 38%;
+  top: -36%;
+  left: 0;
+  width: 16%;
   height: 170%;
-  background: linear-gradient(90deg, transparent, rgba(224, 255, 255, 0.18), transparent);
-  transform: rotate(18deg);
-  animation: crystal-glint 4.8s ease-in-out infinite;
+  background:
+    linear-gradient(90deg, transparent, rgba(237, 255, 255, 0.24) 46%, rgba(255, 255, 255, 0.72) 50%, transparent 58%);
+  transform: translateX(var(--crystal-glint-x)) rotate(-24deg);
+  will-change: transform;
+}
+
+.crystal-card-glass::after {
+  content: "";
+  position: absolute;
+  inset: 4%;
+  border-top: 1px solid rgba(231, 255, 254, 0.34);
+  border-left: 1px solid rgba(231, 255, 254, 0.18);
+  clip-path: var(--crystal-topic-face);
+  opacity: 0.7;
+}
+
+.crystal-face-id {
+  position: absolute;
+  z-index: 2;
+  top: 14%;
+  right: 13%;
+  left: 16%;
+  display: flex;
+  justify-content: space-between;
+  color: rgba(206, 239, 240, 0.42);
+  font-family: var(--mono);
+  font-size: 0.46rem;
+  letter-spacing: 0.15em;
+}
+
+.crystal-face-id span:first-child {
+  color: var(--crystal-accent);
+}
+
+.crystal-edge-network {
+  z-index: 5;
+  clip-path: var(--crystal-face-outline);
+  background:
+    linear-gradient(25deg, transparent 48%, rgba(220, 255, 252, 0.18) 49%, transparent 49.5%),
+    linear-gradient(152deg, transparent 57%, rgba(166, 140, 255, 0.18) 58%, transparent 58.5%);
+  box-shadow: inset 0 0 0 1px rgba(221, 255, 253, 0.38);
+  mix-blend-mode: screen;
+  opacity: var(--crystal-edge-alpha, 0.58);
+  transform: translateZ(18px);
 }
 
 .crystal-card-copy {
   position: absolute;
-  z-index: 2;
-  right: 11%;
-  bottom: 10%;
-  left: 9%;
+  z-index: 3;
+  right: 14%;
+  bottom: 20%;
+  left: 16%;
   text-shadow: 0 2px 18px rgba(0, 0, 0, 0.82);
 }
 
@@ -819,7 +1002,7 @@ button {
 }
 
 #crystal-number {
-  color: var(--aqua);
+  color: var(--crystal-accent);
 }
 
 .crystal-card-copy h2 {
@@ -970,17 +1153,6 @@ button {
   }
   50% {
     top: 88%;
-  }
-}
-
-@keyframes crystal-glint {
-  0%,
-  18% {
-    transform: translateX(-160%) rotate(18deg);
-  }
-  62%,
-  100% {
-    transform: translateX(420%) rotate(18deg);
   }
 }
 
@@ -1598,7 +1770,7 @@ button {
   }
 
   .crystal-passage {
-    height: 460svh;
+    height: 680svh;
   }
 
   .crystal-archive-head {
@@ -1607,8 +1779,13 @@ button {
     left: 24px;
   }
 
-  .crystal-archive-head span:last-child {
-    display: none;
+  .crystal-draw-controls > span {
+    font-size: 0.44rem;
+  }
+
+  .crystal-reshuffle {
+    min-height: 32px;
+    padding-inline: 9px;
   }
 
   .crystal-card-shell {
@@ -1616,13 +1793,12 @@ button {
     max-width: min(560px, calc(115svh - 207px));
     max-height: calc(100svh - 180px);
     aspect-ratio: 1.15;
-    clip-path: polygon(8% 0, 82% 3%, 100% 20%, 94% 88%, 73% 100%, 4% 92%, 0 18%);
   }
 
   .crystal-card-copy {
-    right: 10%;
-    bottom: 9%;
-    left: 9%;
+    right: 15%;
+    bottom: 20%;
+    left: 16%;
   }
 
   .crystal-card-copy h2 {
@@ -1643,7 +1819,7 @@ button {
     right: 22px;
     bottom: 72px;
     left: 22px;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: 6px;
     transform: none;
   }
@@ -1667,6 +1843,12 @@ button {
 
   .crystal-theme-rail span.is-active::before {
     width: 100%;
+  }
+
+  .crystal-face-id {
+    right: 14%;
+    left: 16%;
+    font-size: 0.42rem;
   }
 
   .crystal-depth-readout {
@@ -1850,7 +2032,18 @@ button {
 
 @media (max-width: 900px) and (max-height: 620px) {
   .crystal-archive-head {
+    top: calc(var(--header-height) + 8px);
+    right: 14px;
+    left: auto;
+  }
+
+  .crystal-archive-head > span:first-child,
+  .crystal-draw-controls > span {
     display: none;
+  }
+
+  .crystal-draw-controls {
+    display: block;
   }
 
   .crystal-card-shell {
@@ -1870,6 +2063,21 @@ button {
   }
 
   .crystal-scroll-hint {
+    display: none;
+  }
+}
+
+@media (min-width: 901px) and (max-height: 620px) {
+  .crystal-card-shell {
+    width: min(53vw, 720px, calc(162svh - 259px));
+    max-height: calc(100svh - 160px);
+  }
+
+  .crystal-card-copy h2 {
+    font-size: clamp(1.8rem, 5vw, 3.3rem);
+  }
+
+  #crystal-description {
     display: none;
   }
 }
@@ -1910,11 +2118,30 @@ button {
   .crystal-sticky::before,
   .crystal-sticky::after,
   .crystal-card-shell,
-  .crystal-archive-head,
   .crystal-theme-rail,
   .crystal-depth-readout,
   .crystal-scroll-hint {
     display: none;
+  }
+
+  .crystal-archive-head {
+    position: static;
+    width: min(100%, 980px);
+    margin: 0 auto 22px;
+    align-items: center;
+  }
+
+  .crystal-archive-head > span:first-child,
+  .crystal-draw-controls > span {
+    display: inline;
+  }
+
+  .crystal-draw-controls {
+    display: flex;
+  }
+
+  .crystal-reshuffle {
+    min-height: 40px;
   }
 
   .crystal-static-list {

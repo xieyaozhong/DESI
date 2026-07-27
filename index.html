@@ -112,36 +112,56 @@
         <div class="crystal-sticky">
           <canvas id="crystal-canvas" aria-hidden="true"></canvas>
 
-          <div class="crystal-archive-head" aria-hidden="true">
-            <span>CRYSTAL ARCHIVE</span>
-            <span>SCROLL-SEQUENCED / 04 FRAGMENTS</span>
+          <div class="crystal-archive-head">
+            <span aria-hidden="true">CRYSTAL ARCHIVE</span>
+            <div class="crystal-draw-controls">
+              <span id="crystal-draw-status">RANDOM DRAW / 06 OF 10</span>
+              <button
+                id="crystal-reshuffle"
+                class="crystal-reshuffle"
+                type="button"
+                aria-label="重新隨機抽取六個水晶主題"
+              >
+                重新抽取
+              </button>
+            </div>
+            <span id="crystal-draw-announcement" class="sr-only" aria-live="polite"></span>
           </div>
 
           <div id="crystal-card-shell" class="crystal-card-shell" aria-hidden="true">
-            <div class="crystal-topic-card">
-              <canvas id="crystal-topic-canvas"></canvas>
-              <div class="crystal-card-glass"></div>
-              <div class="crystal-card-copy">
-                <p>
-                  <span id="crystal-number">01</span>
-                  <span id="crystal-code">SUPERPOSITION</span>
-                </p>
-                <h2 id="crystal-title">相遇的波</h2>
-                <div class="crystal-card-meta">
-                  <span id="crystal-formula">H = ψ₁ + ψ₂</span>
-                  <span id="crystal-signal">SIGNAL / INTERFERENCE</span>
+            <div class="crystal-prism">
+              <div class="crystal-shard-depth" aria-hidden="true"></div>
+              <div class="crystal-shard-body" aria-hidden="true"></div>
+              <div class="crystal-shard-facet crystal-shard-facet-left" aria-hidden="true"></div>
+              <div class="crystal-shard-facet crystal-shard-facet-right" aria-hidden="true"></div>
+              <div class="crystal-shard-facet crystal-shard-facet-bottom" aria-hidden="true"></div>
+              <div class="crystal-topic-face">
+                <div class="crystal-topic-card">
+                  <canvas id="crystal-topic-canvas"></canvas>
+                  <div class="crystal-card-glass"></div>
+                  <div class="crystal-face-id">
+                    <span id="crystal-face">FACE 01 / 06</span>
+                    <span>LIVE PROJECTION</span>
+                  </div>
+                  <div class="crystal-card-copy">
+                    <p>
+                      <span id="crystal-number">01</span>
+                      <span id="crystal-code">SUPERPOSITION</span>
+                    </p>
+                    <h2 id="crystal-title">相遇的波</h2>
+                    <div class="crystal-card-meta">
+                      <span id="crystal-formula">H = ψ₁ + ψ₂</span>
+                      <span id="crystal-signal">SIGNAL / INTERFERENCE</span>
+                    </div>
+                    <p id="crystal-description">兩個波源在水面相遇，亮暗之間留下相位的指紋。</p>
+                  </div>
                 </div>
-                <p id="crystal-description">兩個波源在水面相遇，亮暗之間留下相位的指紋。</p>
               </div>
+              <div class="crystal-edge-network" aria-hidden="true"></div>
             </div>
           </div>
 
-          <div class="crystal-theme-rail" aria-hidden="true">
-            <span class="is-active" data-crystal-rail="0"><i>01</i> 波紋</span>
-            <span data-crystal-rail="1"><i>02</i> 軌道</span>
-            <span data-crystal-rail="2"><i>03</i> 成長</span>
-            <span data-crystal-rail="3"><i>04</i> 無限</span>
-          </div>
+          <div id="crystal-theme-rail" class="crystal-theme-rail" aria-hidden="true"></div>
 
           <div class="crystal-depth-readout" aria-hidden="true">
             <span id="crystal-depth">DEPTH / 0.00</span>
@@ -155,13 +175,19 @@
           </div>
 
           <div class="crystal-semantic">
-            <h2 id="crystal-passage-title">四枚水晶，四個數學世界</h2>
-            <p>滑動時，水晶碎塊依序顯示波的干涉、李薩如軌道、對數螺旋與 Mandelbrot 集合。</p>
-            <ol>
+            <h2 id="crystal-passage-title">十個數學世界，隨機抽出六枚水晶</h2>
+            <p>每次進入會抽出六個主題。滑動時，每個數學動畫會投映在立體水晶碎塊的一個切面。</p>
+            <ol id="crystal-semantic-list">
               <li>相遇的波：觀察兩個波源如何疊加。</li>
               <li>波成為軌道：觀察整數頻率比例畫出封閉曲線。</li>
               <li>會成長的螺旋：觀察固定倍率如何形成對數螺旋。</li>
               <li>一條規則的無限：觀察簡單迭代如何形成 Mandelbrot 邊界。</li>
+              <li>模乘的弦：觀察模運算如何在圓周編織出包絡線。</li>
+              <li>拆解一段波：觀察旋轉向量如何疊成複雜週期。</li>
+              <li>混沌的蝴蝶：觀察相近起點如何沿 Lorenz 吸引子分離。</li>
+              <li>一列生成世界：觀察 Rule 30 如何由鄰居長出複雜圖樣。</li>
+              <li>質數的星圖：觀察質數排列在 Ulam 螺旋上的斜向結構。</li>
+              <li>極座標花園：觀察正弦半徑如何生成玫瑰曲線。</li>
             </ol>
           </div>
 
@@ -170,6 +196,12 @@
             <article><span>02</span><strong>波成為軌道</strong><small>x = sin(at + δ)</small></article>
             <article><span>03</span><strong>會成長的螺旋</strong><small>r = r₀eᵇᶿ</small></article>
             <article><span>04</span><strong>一條規則的無限</strong><small>zₙ₊₁ = zₙ² + c</small></article>
+            <article><span>05</span><strong>模乘的弦</strong><small>j = mk mod N</small></article>
+            <article><span>06</span><strong>拆解一段波</strong><small>f(t) = Σaₙeⁱⁿᵗ</small></article>
+            <article><span>07</span><strong>混沌的蝴蝶</strong><small>x′ = σ(y − x)</small></article>
+            <article><span>08</span><strong>一列生成世界</strong><small>Rule 30</small></article>
+            <article><span>09</span><strong>質數的星圖</strong><small>p ∈ ℙ</small></article>
+            <article><span>10</span><strong>極座標花園</strong><small>r = cos(kθ)</small></article>
           </div>
         </div>
       </section>
