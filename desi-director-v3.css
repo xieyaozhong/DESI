@@ -4,7 +4,7 @@ html.desi-v3-booting body{background:#020304!important}
 body.desi-director-v3{background:#020304!important}
 body.desi-director-v3::before{z-index:4!important;background:linear-gradient(180deg,rgba(0,0,0,.38),transparent 18%,transparent 78%,rgba(0,0,0,.72)),radial-gradient(ellipse at center,transparent 28%,rgba(0,0,0,.72) 100%)!important;mix-blend-mode:multiply!important}
 body.desi-director-v3::after{z-index:5!important;opacity:.075!important;mix-blend-mode:soft-light!important}
-#desi-director-webgl{position:fixed;z-index:-2;inset:0;width:100vw;height:100vh;pointer-events:none;background:#020304;transform:scale(1.002)}
+#desi-director-webgl{position:fixed;z-index:0;inset:0;width:100vw;height:100vh;pointer-events:none;background:#020304;transform:scale(1.002)}
 body.desi-v3-no-webgl #desi-director-webgl{display:none}
 body.desi-v3-no-webgl{background:radial-gradient(circle at 62% 26%,rgba(85,161,191,.16),transparent 30rem),linear-gradient(180deg,#020304,#071017 55%,#020304)!important}
 #ambient-canvas{opacity:.14!important;mix-blend-mode:screen}
