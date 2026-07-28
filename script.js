@@ -166,3 +166,7 @@ import("./desi-crystal-assembly.js?v=20260728-shatter-assembly").catch((error) =
 import("./desi-director-v4.js?v=20260728-director-v4").catch((error) => {
   console.error("DESI unified WebGL cinematic director v4 failed to load:", error);
 });
+
+import("./desi-director-v5-edit.js?v=20260728-v5-edit").catch((error) => {
+  console.error("DESI cinematic edit director v5 failed to load:", error);
+});
