@@ -108,7 +108,7 @@
     shell.style.setProperty("--crystal-accent", `rgb(${rgb})`);
     shell.style.setProperty("--crystal-accent-soft", `rgba(${rgb}, .22)`);
     shell.style.setProperty("--crystal-facet-strength", ".28");
-    shell.setAttribute("aria-hidden", "false");
+    shell.setAttribute("aria-hidden", "true");
 
     document.querySelectorAll("#crystal-theme-rail button").forEach((button) => {
       if (button.classList.contains("is-active")) button.setAttribute("aria-current", "true");

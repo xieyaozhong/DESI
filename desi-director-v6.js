@@ -41,6 +41,7 @@
     pointerTargetX: 0,
     pointerTargetY: 0,
     focus: 0,
+    suspended: false,
   };
 
   function addStylesheet() {
@@ -115,7 +116,7 @@
           if (entry.isIntersecting) entry.target.classList.add("desi-v6-entered");
         });
       },
-      { rootMargin: "-8% 0 -10%", threshold: 0.1 },
+      { rootMargin: "-8% 0px -10% 0px", threshold: 0.1 },
     );
     state.sections.forEach((section) => state.observer.observe(section));
   }
@@ -123,6 +124,7 @@
   function observeDynamicSections() {
     const main = $("main");
     if (!main || !("MutationObserver" in window)) return;
+    state.mutationObserver?.disconnect();
     let timer = 0;
     state.mutationObserver = new MutationObserver(() => {
       clearTimeout(timer);
@@ -140,6 +142,7 @@
     };
     sync();
     if (!("MutationObserver" in window)) return;
+    state.prismObserver?.disconnect();
     state.prismObserver = new MutationObserver(sync);
     state.prismObserver.observe(prism, {
       attributes: true,
@@ -195,6 +198,7 @@
     section.classList.add("desi-v6-active");
     state.activeSection = section;
     state.activeIndex = index;
+    document.body.classList.toggle("is-crystal-archive", section.id === "crystal-passage");
     document.documentElement.style.setProperty("--v6-scene", String(index));
     updateTitleCard(section, index);
     if (previous >= 0 && scrollY > innerHeight * 0.25 && focus > 0.3) {
@@ -203,6 +207,7 @@
   }
 
   function markMoving() {
+    requestFrame();
     document.body.classList.add("desi-v6-moving");
     document.body.classList.remove("desi-v6-settled");
     clearTimeout(state.idleTimer);
@@ -214,6 +219,7 @@
 
   function installInput() {
     addEventListener("scroll", markMoving, { passive: true });
+    addEventListener("resize", requestFrame, { passive: true });
     if (finePointer.matches && !reducedMotion.matches) {
       addEventListener(
         "pointermove",
@@ -228,6 +234,11 @@
         state.pointerTargetY = 0;
       }, { passive: true });
     }
+    $("#motion-toggle")?.addEventListener("click", () => setTimeout(requestFrame, 0));
+    reducedMotion.addEventListener?.("change", requestFrame);
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden) requestFrame();
+    });
   }
 
   function installMagneticButtons() {
@@ -256,8 +267,16 @@
       const rect = section.getBoundingClientRect();
       if (rect.bottom < -innerHeight || rect.top > innerHeight * 2) return;
       const local = clamp((center - rect.top) / Math.max(1, rect.height));
-      const distance = Math.abs(rect.top + rect.height * 0.5 - center);
-      const focus = clamp(1 - distance / (innerHeight * 0.88));
+      const isStickyArchive =
+        section.id === "crystal-passage" &&
+        rect.top <= center &&
+        rect.bottom >= center;
+      const distance = isStickyArchive
+        ? 0
+        : Math.abs(rect.top + rect.height * 0.5 - center);
+      const focus = isStickyArchive
+        ? 1
+        : clamp(1 - distance / (innerHeight * 0.88));
       const opacity = 0.14 + focus * 0.86;
       const blur = (1 - focus) * 5.2;
       const translate = (0.5 - local) * 72;
@@ -296,7 +315,14 @@
     canvas.style.filter = `contrast(${contrast.toFixed(3)}) brightness(${brightness.toFixed(3)}) saturate(${saturation.toFixed(3)}) blur(${blur.toFixed(2)}px)`;
   }
 
+  function requestFrame() {
+    if (state.suspended || state.raf) return;
+    state.raf = requestAnimationFrame(frame);
+  }
+
   function frame() {
+    state.raf = 0;
+    if (state.suspended) return;
     const paused = document.body.classList.contains("motion-paused");
     const currentY = scrollY;
     const delta = currentY - state.lastScrollY;
@@ -332,16 +358,28 @@
     root.style.setProperty("--v6-foreground-opacity", (0.2 + speed * 0.25).toFixed(4));
     document.body.classList.toggle("desi-v6-fast", speed > 0.53);
     updateCanvas(speed);
-    state.raf = requestAnimationFrame(frame);
+    if (!paused && !reducedMotion.matches && !document.hidden) requestFrame();
   }
 
   function cleanup() {
+    state.suspended = true;
     cancelAnimationFrame(state.raf);
+    state.raf = 0;
     clearTimeout(state.idleTimer);
     clearTimeout(state.titleTimer);
     state.observer?.disconnect();
     state.mutationObserver?.disconnect();
     state.prismObserver?.disconnect();
+  }
+
+  function resume(event) {
+    if (!event.persisted) return;
+    state.suspended = false;
+    state.lastScrollY = scrollY;
+    registerSections();
+    observeDynamicSections();
+    syncThemeColor();
+    requestFrame();
   }
 
   async function init() {
@@ -355,9 +393,10 @@
     syncThemeColor();
     installInput();
     installMagneticButtons();
-    state.raf = requestAnimationFrame(frame);
-    setTimeout(() => updateTitleCard(state.sections[0], 0), 700);
-    addEventListener("pagehide", cleanup, { once: true });
+    state.suspended = false;
+    requestFrame();
+    addEventListener("pagehide", cleanup);
+    addEventListener("pageshow", resume);
   }
 
   if (document.readyState === "loading") {

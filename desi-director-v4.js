@@ -33,6 +33,7 @@
     resizeObserver: null,
     sectionObserver: null,
     mutationObserver: null,
+    prismObserver: null,
     sections: [],
     activeIndex: 0,
     scene: 0,
@@ -64,6 +65,7 @@
     paused: false,
     hidden: document.hidden,
     ready: false,
+    suspended: false,
   };
 
   const vertexShader = `#version 300 es
@@ -573,12 +575,15 @@
     state.sectionObserver = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) entry.target.classList.add("desi-v4-entered");
-        if (entry.isIntersecting && entry.intersectionRatio >= 0.34) {
+        if (
+          entry.isIntersecting &&
+          (entry.target.id === "crystal-passage" || entry.intersectionRatio >= 0.34)
+        ) {
           const index = Number(entry.target.dataset.desiV4Index || 0);
           setActiveScene(index);
         }
       });
-    }, { rootMargin: "-10% 0px -15%", threshold: [0, 0.12, 0.34, 0.58] });
+    }, { rootMargin: "-10% 0px -15% 0px", threshold: [0, 0.12, 0.34, 0.58] });
     state.sections.forEach((section) => state.sectionObserver.observe(section));
   }
 
@@ -630,18 +635,33 @@
       if (values.length === 3) state.accentTarget = values.map((value) => clamp(value, 0, 1));
     };
     update();
-    if ("MutationObserver" in window) new MutationObserver(update).observe(prism, { attributes: true, attributeFilter: ["style", "data-crystal-shape"] });
+    state.prismObserver?.disconnect();
+    if ("MutationObserver" in window) {
+      state.prismObserver = new MutationObserver(update);
+      state.prismObserver.observe(prism, {
+        attributes: true,
+        attributeFilter: ["style", "data-crystal-shape"],
+      });
+    }
+  }
+
+  function requestRender() {
+    if (state.suspended || state.raf) return;
+    state.lastFrame = performance.now();
+    state.raf = requestAnimationFrame(render);
   }
 
   function installInput() {
     const updateScroll = () => {
       const max = Math.max(1, document.documentElement.scrollHeight - innerHeight);
       state.scrollTarget = scrollY / max;
+      requestRender();
     };
     addEventListener("scroll", updateScroll, { passive: true });
     addEventListener("resize", () => {
       updateScroll();
       resize();
+      requestRender();
     }, { passive: true });
     updateScroll();
 
@@ -662,7 +682,12 @@
       }, { passive: true });
     }
 
-    document.addEventListener("visibilitychange", () => { state.hidden = document.hidden; });
+    document.addEventListener("visibilitychange", () => {
+      state.hidden = document.hidden;
+      if (!state.hidden) requestRender();
+    });
+    $("#motion-toggle")?.addEventListener("click", () => setTimeout(requestRender, 0));
+    reducedMotion.addEventListener?.("change", requestRender);
   }
 
   function updateSectionProgress() {
@@ -698,6 +723,8 @@
   }
 
   function render(now) {
+    state.raf = 0;
+    if (state.suspended) return;
     const frameTime = Math.min(50, now - state.lastFrame);
     const dt = frameTime / 1000;
     state.lastFrame = now;
@@ -725,7 +752,13 @@
     root.style.setProperty("--desi-v4-cursor-x", `${state.cursorX}px`);
     root.style.setProperty("--desi-v4-cursor-y", `${state.cursorY}px`);
 
-    if (state.gl && state.program && !state.hidden) {
+    if (
+      state.gl &&
+      state.program &&
+      !state.hidden &&
+      !state.paused &&
+      !reducedMotion.matches
+    ) {
       const gl = state.gl;
       gl.useProgram(state.program);
       gl.uniform2f(state.uniforms.resolution, state.width, state.height);
@@ -742,14 +775,28 @@
       adaptQuality(frameTime);
     }
 
-    state.raf = requestAnimationFrame(render);
+    if (!state.paused && !reducedMotion.matches && !state.hidden) requestRender();
   }
 
   function cleanup() {
+    state.suspended = true;
     cancelAnimationFrame(state.raf);
+    state.raf = 0;
     state.sectionObserver?.disconnect();
     state.mutationObserver?.disconnect();
     state.resizeObserver?.disconnect();
+    state.prismObserver?.disconnect();
+  }
+
+  function resume(event) {
+    if (!event.persisted) return;
+    state.suspended = false;
+    state.hidden = document.hidden;
+    state.lastScrollY = scrollY;
+    registerSections();
+    observeDynamicSections();
+    syncThemeColor();
+    requestRender();
   }
 
   async function init() {
@@ -764,11 +811,13 @@
     installInput();
     createLoader(webglReady);
     state.scene = state.sceneTarget = 0;
-    state.raf = requestAnimationFrame(render);
+    state.suspended = false;
+    requestRender();
     document.documentElement.classList.remove("desi-v4-booting");
     document.body.style.visibility = "";
     $("#desi-v4-bootstrap-style")?.remove();
-    addEventListener("pagehide", cleanup, { once: true });
+    addEventListener("pagehide", cleanup);
+    addEventListener("pageshow", resume);
   }
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => void init(), { once: true });

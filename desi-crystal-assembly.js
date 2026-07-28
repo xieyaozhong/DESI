@@ -262,12 +262,85 @@
     return `translate(${x}%, ${y}%) rotate(${rotation}deg) scale(${scale})`;
   }
 
+  function playFacetTurn() {
+    if (!shell || !prism) return;
+    generation += 1;
+    const run = generation;
+    cancelAnimations();
+    clearTimeout(replayTimer);
+    shell.classList.remove("crystal-awaiting", "crystal-assembling");
+    shell.classList.add("crystal-assembled");
+    prism.style.removeProperty("opacity");
+    prism.style.removeProperty("visibility");
+    const topicFace = prism.querySelector(".crystal-topic-face");
+    const crystalBody = prism.querySelector(".crystal-shard-body");
+    const caption = document.querySelector("#crystal-caption");
+    const shapeIndex = Math.max(0, SHAPE_ORDER.indexOf(currentShape));
+    const direction = shapeIndex % 2 === 0 ? -1 : 1;
+
+    if (topicFace?.animate) {
+      activeAnimations.push(
+        topicFace.animate(
+          [
+            {
+              opacity: 0.08,
+              filter: "blur(7px) brightness(1.35)",
+              transform: `translateZ(var(--crystal-topic-depth, 24px)) rotateY(${direction * 11}deg) scale(.965)`,
+            },
+            {
+              opacity: 1,
+              filter: "blur(0) brightness(1)",
+              transform: "translateZ(var(--crystal-topic-depth, 24px)) rotateY(0deg) scale(1)",
+            },
+          ],
+          {
+            duration: 560,
+            easing: "cubic-bezier(.18,.78,.18,1)",
+          },
+        ),
+      );
+    }
+
+    if (crystalBody?.animate) {
+      activeAnimations.push(
+        crystalBody.animate(
+          [
+            { opacity: 0.72, transform: "translateZ(0) scale(.988)" },
+            { opacity: 1, transform: "translateZ(3px) scale(1.006)", offset: 0.48 },
+            { opacity: 1, transform: "translateZ(0) scale(1)" },
+          ],
+          {
+            duration: 620,
+            easing: "cubic-bezier(.2,.72,.18,1)",
+          },
+        ),
+      );
+    }
+
+    if (caption) {
+      caption.classList.remove("crystal-caption-switch");
+      void caption.offsetWidth;
+      caption.classList.add("crystal-caption-switch");
+    }
+
+    replayTimer = window.setTimeout(() => {
+      if (run !== generation) return;
+      cancelAnimations();
+      caption?.classList.remove("crystal-caption-switch");
+    }, 720);
+  }
+
   function playAssembly(mode = "switch") {
     if (!shell || !prism || !fragments.length) return;
     syncThemeColor();
 
     if (prefersReducedMotion() || motionPaused()) {
       settleImmediately();
+      return;
+    }
+
+    if (mode !== "initial") {
+      playFacetTurn();
       return;
     }
 

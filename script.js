@@ -6,7 +6,6 @@ const installCrystalArchiveCompatibility = () => {
       #crystal-card-shell {
         opacity: 1 !important;
         visibility: visible !important;
-        transform: translate3d(-50%, -50%, 0) rotateY(0deg) scale(1) !important;
       }
 
       .crystal-theme-rail button {
@@ -119,7 +118,7 @@ const installCrystalArchiveCompatibility = () => {
 
   const revealAndSync = () => {
     if (!shell) return;
-    shell.setAttribute("aria-hidden", "false");
+    shell.setAttribute("aria-hidden", "true");
 
     const rgb = prism?.style.getPropertyValue("--crystal-rgb").trim() || "120, 255, 230";
     shell.style.setProperty("--crystal-accent", `rgb(${rgb})`);
@@ -139,34 +138,96 @@ const installCrystalArchiveCompatibility = () => {
   window.addEventListener("pageshow", revealAndSync, { passive: true });
 };
 
-import("./desi-ten-worlds.js?v=20260728-crystal-fix")
-  .then(() => {
-    const startCompatibilityPatch = () => {
-      requestAnimationFrame(() => requestAnimationFrame(installCrystalArchiveCompatibility));
-    };
-
-    if (document.readyState === "loading") {
-      document.addEventListener("DOMContentLoaded", startCompatibilityPatch, { once: true });
-    } else {
-      startCompatibilityPatch();
-    }
-  })
-  .catch((error) => {
-    console.error("DESI ten-worlds module failed to load:", error);
+const loadModule = (path, label) =>
+  import(path).catch((error) => {
+    console.error(`${label} failed to load:`, error);
+    return null;
   });
 
-import("./desi-visual-qa-final.js?v=20260728-visual-qa").catch((error) => {
-  console.error("DESI visual QA corrections failed to load:", error);
+const tenWorldsModule = loadModule(
+  "./desi-ten-worlds.js?v=20260728-crystal-cinema-r9",
+  "DESI ten-worlds module",
+);
+const visualQaModule = loadModule(
+  "./desi-visual-qa-final.js?v=20260728-crystal-cinema-r9",
+  "DESI visual QA corrections",
+);
+const crystalAssemblyModule = loadModule(
+  "./desi-crystal-assembly.js?v=20260728-crystal-cinema-r9",
+  "DESI crystal assembly animation",
+);
+const directorV4Module = loadModule(
+  "./desi-director-v4.js?v=20260728-crystal-cinema-r9",
+  "DESI unified WebGL cinematic director v4",
+);
+const directorV6Module = loadModule(
+  "./desi-director-v6.js?v=20260728-crystal-cinema-r9",
+  "DESI cinematic aesthetic director v6",
+);
+
+tenWorldsModule.then(() => {
+  const startCompatibilityPatch = () => {
+    requestAnimationFrame(() => requestAnimationFrame(installCrystalArchiveCompatibility));
+  };
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", startCompatibilityPatch, { once: true });
+  } else {
+    startCompatibilityPatch();
+  }
 });
 
-import("./desi-crystal-assembly.js?v=20260728-shatter-assembly").catch((error) => {
-  console.error("DESI crystal assembly animation failed to load:", error);
-});
+const installCrystalCinemaStyles = () => {
+  if (document.querySelector("link[data-desi-crystal-cinema]")) return;
+  const link = document.createElement("link");
+  const alignHashTarget = () => {
+    if (!location.hash) return;
+    let id = "";
+    try {
+      id = decodeURIComponent(location.hash.slice(1));
+    } catch {
+      id = location.hash.slice(1);
+    }
+    const target = document.getElementById(id);
+    if (!target) return;
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => {
+        if (id === "crystal-passage") {
+          window.scrollTo({
+            top: window.scrollY + target.getBoundingClientRect().top,
+            behavior: "instant",
+          });
+          return;
+        }
+        target.scrollIntoView({ block: "start", behavior: "instant" });
+      }),
+    );
+  };
+  link.rel = "stylesheet";
+  link.href = "./desi-crystal-cinema.css?v=20260728-crystal-cinema-r9";
+  link.dataset.desiCrystalCinema = "true";
+  link.addEventListener("load", alignHashTarget, { once: true });
+  document.head.appendChild(link);
+};
 
-import("./desi-director-v4.js?v=20260728-director-v4").catch((error) => {
-  console.error("DESI unified WebGL cinematic director v4 failed to load:", error);
-});
+Promise.allSettled([
+  tenWorldsModule,
+  visualQaModule,
+  crystalAssemblyModule,
+  directorV4Module,
+  directorV6Module,
+]).then(() => {
+  const startFinalStyleLayer = () => {
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() =>
+        requestAnimationFrame(installCrystalCinemaStyles),
+      ),
+    );
+  };
 
-import("./desi-director-v6.js?v=20260728-director-v6").catch((error) => {
-  console.error("DESI cinematic aesthetic director v6 failed to load:", error);
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", startFinalStyleLayer, { once: true });
+  } else {
+    startFinalStyleLayer();
+  }
 });
