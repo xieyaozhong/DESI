@@ -163,14 +163,6 @@ import("./desi-crystal-assembly.js?v=20260728-shatter-assembly").catch((error) =
   console.error("DESI crystal assembly animation failed to load:", error);
 });
 
-import("./desi-cinematic-aerial.js?v=20260728-cinematic-aerial").catch((error) => {
-  console.error("DESI cinematic aesthetic layer failed to load:", error);
-});
-
-import("./desi-cinematic-motion-v2.js?v=20260728-motion-v2").catch((error) => {
-  console.error("DESI cinematic motion direction v2 failed to load:", error);
-});
-
-import("./desi-director-v3.js?v=20260728-director-v3").catch((error) => {
-  console.error("DESI WebGL cinematic director v3 failed to load:", error);
+import("./desi-director-v4.js?v=20260728-director-v4").catch((error) => {
+  console.error("DESI unified WebGL cinematic director v4 failed to load:", error);
 });
