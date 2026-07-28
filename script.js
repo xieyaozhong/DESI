@@ -167,6 +167,6 @@ import("./desi-director-v4.js?v=20260728-director-v4").catch((error) => {
   console.error("DESI unified WebGL cinematic director v4 failed to load:", error);
 });
 
-import("./desi-director-v5-edit.js?v=20260728-v5-edit").catch((error) => {
-  console.error("DESI cinematic edit director v5 failed to load:", error);
+import("./desi-director-v6.js?v=20260728-director-v6").catch((error) => {
+  console.error("DESI cinematic aesthetic director v6 failed to load:", error);
 });
