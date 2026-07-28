@@ -171,128 +171,103 @@ body.desi-v6-cinema #crystal-card-shell .crystal-card-glass {
 }
 
 body.desi-v6-cinema #crystal-caption {
+  --crystal-caption-y: 0px;
   position: absolute;
   z-index: 16;
   right: auto;
-  bottom: 12%;
-  left: max(var(--edge), 40px);
-  width: min(31vw, 420px);
+  bottom: clamp(72px, 14vh, 144px);
+  left: clamp(42px, 7vw, 118px);
+  display: grid;
+  justify-items: start;
+  width: min(23vw, 330px);
   opacity: 1;
   visibility: visible;
-  text-shadow: 0 4px 28px rgba(0, 0, 0, .84);
-  transform: translate3d(0, 0, 0);
-  transform-origin: left bottom;
-  will-change: opacity, transform, filter;
+  text-shadow: 0 12px 40px rgba(0, 0, 0, .62);
+  transform: translate3d(0, var(--crystal-caption-y), 0);
+  transform-origin: left center;
+  will-change: opacity, transform;
 }
 
 body.desi-v6-cinema #crystal-card-shell.crystal-awaiting + #crystal-caption,
 body.desi-v6-cinema #crystal-card-shell.crystal-assembling + #crystal-caption {
   opacity: 0;
   visibility: hidden;
-  transform: translate3d(0, 14px, 0);
+  transform: translate3d(
+    0,
+    calc(var(--crystal-caption-y) + 10px),
+    0
+  );
 }
 
 body.desi-v6-cinema:not(.motion-paused)
 #crystal-card-shell.crystal-assembled + #crystal-caption {
-  animation: crystal-caption-arrive .65s var(--crystal-cinema-ease);
+  animation: crystal-caption-arrive .58s var(--crystal-cinema-ease);
 }
 
 body.desi-v6-cinema.motion-paused #crystal-card-shell + #crystal-caption {
   opacity: 1;
   visibility: visible;
   filter: none;
-  transform: translate3d(0, 0, 0);
+  transform: translate3d(0, var(--crystal-caption-y), 0);
 }
 
 @keyframes crystal-caption-arrive {
   from {
     opacity: 0;
-    filter: blur(6px);
-    transform: translate3d(0, 14px, 0);
+    transform: translate3d(
+      0,
+      calc(var(--crystal-caption-y) + 10px),
+      0
+    );
   }
 
   to {
     opacity: 1;
-    filter: blur(0);
-    transform: translate3d(0, 0, 0);
+    transform: translate3d(0, var(--crystal-caption-y), 0);
   }
 }
 
-body.desi-v6-cinema:not(.motion-paused)
-#crystal-caption.crystal-caption-switch > * {
-  animation: crystal-caption-switch .44s var(--crystal-cinema-ease) both;
+body.desi-v6-cinema #crystal-caption .crystal-caption__index {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: rgba(var(--v6-rgb), .66);
+  font-family: var(--mono);
+  font-size: .48rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+  letter-spacing: .28em;
+  line-height: 1;
 }
 
-body.desi-v6-cinema #crystal-caption.crystal-caption-switch > :nth-child(2) {
-  animation-delay: 28ms;
+body.desi-v6-cinema #crystal-caption .crystal-caption__index::before {
+  content: "";
+  width: 28px;
+  height: 1px;
+  background: rgba(224, 244, 246, .24);
 }
 
-body.desi-v6-cinema #crystal-caption.crystal-caption-switch > :nth-child(3) {
-  animation-delay: 56ms;
+body.desi-v6-cinema #crystal-caption .crystal-caption__title {
+  display: block;
+  max-width: 8ch;
+  margin-top: 16px;
+  color: rgba(239, 247, 247, .94);
+  font-family: var(--serif);
+  font-size: clamp(2.5rem, 4.25vw, 4.55rem);
+  font-weight: 350;
+  letter-spacing: -.055em;
+  line-height: .94;
+  text-wrap: balance;
 }
 
-body.desi-v6-cinema #crystal-caption.crystal-caption-switch > :nth-child(4) {
-  animation-delay: 84ms;
-}
-
-@keyframes crystal-caption-switch {
-  from {
-    opacity: 0;
-    filter: blur(4px);
-    transform: translate3d(0, 8px, 0);
-  }
-
-  to {
-    opacity: 1;
-    filter: blur(0);
-    transform: translate3d(0, 0, 0);
-  }
-}
-
-body.desi-v6-cinema #crystal-caption > p:first-child {
-  gap: 10px;
-  margin-bottom: 8px;
-  color: rgba(213, 237, 239, .48);
-  font-size: .5rem;
-  letter-spacing: .18em;
-}
-
-body.desi-v6-cinema #crystal-number {
-  color: rgb(var(--v6-rgb));
-}
-
-body.desi-v6-cinema #crystal-code,
-body.desi-v6-cinema #crystal-signal {
-  display: none;
-}
-
-body.desi-v6-cinema #crystal-caption h2 {
-  margin: 0;
-  font-size: clamp(3rem, 5.4vw, 5.8rem);
-  font-weight: 250;
-  line-height: .92;
-  letter-spacing: -.05em;
-}
-
-body.desi-v6-cinema #crystal-caption .crystal-card-meta {
-  justify-content: flex-start;
-  gap: 0;
-  margin-top: 12px;
-  padding-top: 4px;
-  border: 0;
-}
-
-body.desi-v6-cinema #crystal-formula {
-  color: rgba(243, 216, 145, .82);
-  font-size: .9rem;
-}
-
-body.desi-v6-cinema #crystal-description {
-  max-width: 29rem;
-  margin-top: 10px;
-  color: rgba(223, 244, 242, .52);
-  font-size: clamp(.66rem, .9vw, .8rem);
-  line-height: 1.7;
+body.desi-v6-cinema #crystal-caption .crystal-caption__formula {
+  margin-top: 20px;
+  color: rgba(229, 222, 202, .78);
+  font-family: var(--serif);
+  font-size: clamp(.78rem, .9vw, .94rem);
+  font-weight: 400;
+  letter-spacing: .045em;
+  line-height: 1.2;
 }
 
 body.desi-v6-cinema #crystal-passage .crystal-depth-readout,
@@ -302,15 +277,43 @@ body.desi-v6-cinema #crystal-passage .crystal-scroll-hint {
 
 body.desi-v6-cinema #crystal-passage .crystal-archive-head {
   z-index: 20;
-  opacity: .42 !important;
+  right: var(--edge);
+  left: auto;
+  justify-content: flex-end;
+  width: 42px;
+  opacity: .36 !important;
 }
 
-body.desi-v6-cinema #crystal-passage .crystal-archive-head > span:first-child {
-  color: rgba(120, 255, 230, .58);
-}
-
+body.desi-v6-cinema #crystal-passage .crystal-archive-head > span:first-child,
 body.desi-v6-cinema #crystal-passage .crystal-draw-controls > span {
-  opacity: .6;
+  display: none !important;
+}
+
+body.desi-v6-cinema #crystal-passage .crystal-draw-controls {
+  gap: 0;
+}
+
+body.desi-v6-cinema #crystal-passage .crystal-reshuffle {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  min-width: 40px;
+  height: 40px;
+  min-height: 40px;
+  padding: 0;
+  border-color: rgba(var(--v6-rgb), .22);
+  border-radius: 999px;
+  background: rgba(3, 20, 29, .18);
+  color: rgba(228, 246, 245, .62);
+  font-size: 0;
+}
+
+body.desi-v6-cinema #crystal-passage .crystal-reshuffle::before {
+  content: "↻";
+  font-family: var(--sans);
+  font-size: .92rem;
+  font-weight: 300;
+  line-height: 1;
 }
 
 body.desi-v6-cinema #crystal-theme-rail {
@@ -381,6 +384,16 @@ body.is-crystal-archive .desi-v4-scene-meter {
   display: none !important;
 }
 
+@media (min-width: 901px) and (max-width: 1180px) {
+  body.desi-v6-cinema #crystal-caption {
+    width: min(25vw, 280px);
+  }
+
+  body.desi-v6-cinema #crystal-caption .crystal-caption__title {
+    font-size: clamp(2.25rem, 4vw, 3.5rem);
+  }
+}
+
 @media (max-width: 900px) {
   body.desi-v6-cinema #crystal-card-shell {
     --crystal-topic-depth: 17px;
@@ -402,28 +415,31 @@ body.is-crystal-archive .desi-v4-scene-meter {
 
   body.desi-v6-cinema #crystal-caption {
     right: 24px;
-    bottom: 11%;
+    bottom: calc(84px + env(safe-area-inset-bottom));
     left: 24px;
     width: auto;
   }
 
-  body.desi-v6-cinema #crystal-caption h2 {
-    font-size: clamp(2.5rem, 12vw, 4.2rem);
+  body.desi-v6-cinema #crystal-caption .crystal-caption__index {
+    font-size: .44rem;
+    letter-spacing: .24em;
   }
 
-  body.desi-v6-cinema #crystal-description {
-    display: none;
+  body.desi-v6-cinema #crystal-caption .crystal-caption__title {
+    max-width: 10ch;
+    margin-top: 10px;
+    font-size: clamp(2.15rem, 10.5vw, 3.15rem);
   }
 
-  body.desi-v6-cinema #crystal-passage .crystal-archive-head > span:first-child,
-  body.desi-v6-cinema #crystal-passage .crystal-draw-controls > span {
-    display: none;
+  body.desi-v6-cinema #crystal-caption .crystal-caption__formula {
+    margin-top: 12px;
+    font-size: .78rem;
   }
 
   body.desi-v6-cinema #crystal-theme-rail {
     top: auto;
     right: 24px;
-    bottom: 5%;
+    bottom: env(safe-area-inset-bottom);
     left: 24px;
     grid-template-columns: repeat(6, 1fr);
     gap: 7px;
@@ -449,21 +465,30 @@ body.is-crystal-archive .desi-v4-scene-meter {
     width: min(84vw, 56svh) !important;
     max-width: calc(100vw - 24px) !important;
   }
+}
+
+@media (max-width: 480px) and (max-height: 680px) and (orientation: portrait) {
+  body.desi-v6-cinema #crystal-card-shell {
+    top: 32%;
+    width: min(74vw, 48svh) !important;
+  }
 
   body.desi-v6-cinema #crystal-caption {
-    bottom: 11%;
+    bottom: calc(76px + env(safe-area-inset-bottom));
   }
 
-  body.desi-v6-cinema #crystal-caption h2 {
-    font-size: clamp(2.35rem, 12.5vw, 3.6rem);
+  body.desi-v6-cinema #crystal-caption .crystal-caption__title {
+    margin-top: 8px;
+    font-size: clamp(1.8rem, 8.6vw, 2.35rem);
   }
 
-  body.desi-v6-cinema #crystal-formula {
-    font-size: .8rem;
+  body.desi-v6-cinema #crystal-caption .crystal-caption__formula {
+    margin-top: 9px;
+    font-size: .7rem;
   }
 }
 
-@media (max-width: 900px) and (max-height: 620px) {
+@media (max-width: 900px) and (max-height: 620px) and (orientation: landscape) {
   body.desi-v6-cinema #crystal-card-shell {
     top: 47%;
     left: 58%;
@@ -471,19 +496,25 @@ body.is-crystal-archive .desi-v4-scene-meter {
   }
 
   body.desi-v6-cinema #crystal-caption {
+    --crystal-caption-y: -50%;
+    top: 50%;
     right: auto;
-    bottom: 15%;
+    bottom: auto;
     left: 20px;
-    width: min(34vw, 300px);
+    width: min(31vw, 270px);
   }
 
-  body.desi-v6-cinema #crystal-caption h2 {
-    font-size: clamp(1.7rem, 6vw, 2.7rem);
+  body.desi-v6-cinema #crystal-caption .crystal-caption__title {
+    font-size: clamp(1.55rem, 4.5vw, 2.25rem);
+  }
+
+  body.desi-v6-cinema #crystal-caption .crystal-caption__formula {
+    font-size: .7rem;
   }
 
   body.desi-v6-cinema #crystal-theme-rail {
     right: 18px;
-    bottom: 4%;
+    bottom: env(safe-area-inset-bottom);
     left: 18px;
   }
 }
