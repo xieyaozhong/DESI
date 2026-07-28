@@ -89,27 +89,79 @@
     },
   };
 
-  const FRAGMENTS = [
-    { x: 13, y: 18, sx: -330, sy: -230, rotate: -42, size: 0.92 },
-    { x: 31, y: 11, sx: -110, sy: -340, rotate: 31, size: 0.72 },
-    { x: 52, y: 13, sx: 45, sy: -360, rotate: -18, size: 0.82 },
-    { x: 74, y: 18, sx: 255, sy: -245, rotate: 47, size: 0.88 },
-    { x: 88, y: 39, sx: 345, sy: -70, rotate: 70, size: 0.66 },
-    { x: 82, y: 68, sx: 300, sy: 210, rotate: 36, size: 0.96 },
-    { x: 65, y: 84, sx: 115, sy: 340, rotate: -24, size: 0.74 },
-    { x: 43, y: 87, sx: -40, sy: 360, rotate: 18, size: 0.9 },
-    { x: 21, y: 77, sx: -285, sy: 260, rotate: -55, size: 0.7 },
-    { x: 9, y: 52, sx: -365, sy: 35, rotate: -76, size: 0.84 },
-    { x: 37, y: 42, sx: -135, sy: -25, rotate: 23, size: 0.62 },
-    { x: 61, y: 55, sx: 145, sy: 55, rotate: -32, size: 0.68 },
+  const CRYSTAL_CENTER = [48.978, 46.353];
+  const CRYSTAL_OUTLINE = [
+    [23, 0],
+    [78, 7],
+    [100, 38],
+    [83, 88],
+    [54, 100],
+    [11, 78],
+    [0, 31],
   ];
+  const CRYSTAL_INNER = [
+    [24, 14],
+    [70, 13],
+    [87, 38],
+    [76, 73],
+    [53, 87],
+    [19, 69],
+    [12, 34],
+  ];
+  function polygonCentroid(points) {
+    let crossSum = 0;
+    let xSum = 0;
+    let ySum = 0;
 
-  const FRAGMENT_POLYGONS = [
-    "polygon(50% 0, 100% 28%, 80% 100%, 13% 81%, 0 24%)",
-    "polygon(18% 0, 100% 13%, 78% 69%, 88% 100%, 10% 83%, 0 31%)",
-    "polygon(0 11%, 75% 0, 100% 48%, 57% 100%, 12% 76%)",
-    "polygon(32% 0, 100% 35%, 77% 100%, 0 73%, 12% 19%)",
-  ];
+    points.forEach((point, index) => {
+      const next = points[(index + 1) % points.length];
+      const cross = point[0] * next[1] - next[0] * point[1];
+      crossSum += cross;
+      xSum += (point[0] + next[0]) * cross;
+      ySum += (point[1] + next[1]) * cross;
+    });
+
+    if (Math.abs(crossSum) < 0.0001) {
+      return [
+        points.reduce((sum, point) => sum + point[0], 0) / points.length,
+        points.reduce((sum, point) => sum + point[1], 0) / points.length,
+      ];
+    }
+
+    return [
+      xSum / (3 * crossSum),
+      ySum / (3 * crossSum),
+    ];
+  }
+
+  const FRAGMENTS = CRYSTAL_OUTLINE.flatMap((vertex, sector) => {
+    const next = CRYSTAL_OUTLINE[(sector + 1) % CRYSTAL_OUTLINE.length];
+    const inner = CRYSTAL_INNER[sector];
+    const innerNext = CRYSTAL_INNER[(sector + 1) % CRYSTAL_INNER.length];
+
+    return [
+      [vertex, next, innerNext, inner],
+      [CRYSTAL_CENTER, inner, innerNext],
+    ].map((points, half) => {
+      const [x, y] = polygonCentroid(points);
+      const radialAngle = Math.atan2(
+        y - CRYSTAL_CENTER[1],
+        x - CRYSTAL_CENTER[0],
+      );
+
+      return {
+        x,
+        y,
+        sector,
+        half,
+        kind: half ? "core" : "rim",
+        rotate: radialAngle * 180 / Math.PI + (half ? 18 : -18),
+        points: points
+          .map(([pointX, pointY]) => `${pointX}% ${pointY}%`)
+          .join(", "),
+      };
+    });
+  });
 
   let shell;
   let prism;
@@ -123,6 +175,7 @@
   let activeAnimations = [];
   let startTimer = 0;
   let settleTimer = 0;
+  let cleanupTimer = 0;
   let generation = 0;
 
   function prefersReducedMotion() {
@@ -145,12 +198,14 @@
       .crystal-assembly-layer {
         position: absolute;
         z-index: 12;
-        inset: -24%;
+        inset: 0;
         pointer-events: none;
         opacity: 0;
-        contain: layout paint;
-        transition: opacity 180ms ease;
-        filter: drop-shadow(0 0 18px rgba(var(--assembly-rgb), .2));
+        contain: layout;
+        overflow: visible;
+        perspective: 900px;
+        transition: opacity 210ms ease;
+        filter: drop-shadow(0 22px 34px rgba(0, 0, 0, .34));
         transform-style: preserve-3d;
       }
 
@@ -162,7 +217,7 @@
       .crystal-card-shell.crystal-awaiting .crystal-prism {
         opacity: 0 !important;
         visibility: hidden;
-        filter: blur(5px) brightness(.62) !important;
+        filter: brightness(.62) !important;
       }
 
       .crystal-card-shell.crystal-assembled .crystal-assembly-layer {
@@ -171,46 +226,71 @@
 
       .crystal-fragment {
         position: absolute;
-        left: var(--fragment-x);
-        top: var(--fragment-y);
-        width: clamp(25px, 5vw, 58px);
-        aspect-ratio: .76;
+        z-index: var(--fragment-stack);
+        inset: 0;
         opacity: 0;
-        transform-origin: 50% 50%;
-        clip-path: var(--fragment-shape);
-        background:
-          linear-gradient(145deg, rgba(255,255,255,.6), transparent 22%),
-          linear-gradient(33deg, rgba(var(--assembly-rgb),.08), rgba(var(--assembly-rgb),.4) 52%, rgba(3,14,23,.82));
-        border: 1px solid rgba(var(--assembly-rgb), .52);
-        box-shadow:
-          inset 0 0 18px rgba(var(--assembly-rgb), .12),
-          0 0 20px rgba(var(--assembly-rgb), .16);
-        mix-blend-mode: screen;
+        transform-box: border-box;
+        transform-origin: var(--fragment-origin);
+        transform-style: preserve-3d;
         will-change: auto;
       }
 
-      .crystal-fragment::before,
-      .crystal-fragment::after {
-        content: "";
+      .crystal-fragment__depth,
+      .crystal-fragment__face {
         position: absolute;
         inset: 0;
         pointer-events: none;
-        clip-path: inherit;
+        clip-path: var(--fragment-shape);
+        backface-visibility: hidden;
       }
 
-      .crystal-fragment::before {
+      .crystal-fragment__depth {
         background:
-          linear-gradient(34deg, transparent 48%, rgba(235,255,255,.32) 49%, transparent 50%),
-          linear-gradient(145deg, transparent 55%, rgba(var(--assembly-rgb),.28) 56%, transparent 57%);
+          linear-gradient(148deg, rgba(var(--assembly-rgb), .28), rgba(1, 8, 14, .98) 68%);
+        opacity: .68;
+        backface-visibility: visible;
+        transform: translate3d(
+          var(--assembly-depth-x, 15px),
+          var(--assembly-depth-y, 20px),
+          -28px
+        );
       }
 
-      .crystal-fragment::after {
-        inset: 2px;
-        box-shadow: inset 0 0 0 1px rgba(234,255,255,.16);
+      .crystal-fragment__face {
+        background:
+          linear-gradient(145deg, rgba(241,255,254,.42), transparent 17%),
+          conic-gradient(
+            from 132deg at 52% 48%,
+            rgba(226,255,253,.44),
+            rgba(var(--assembly-rgb),.15) 15%,
+            rgba(21,67,83,.84) 31%,
+            rgba(113,89,184,.36) 57%,
+            rgba(1,9,15,.97) 77%,
+            rgba(205,255,247,.38)
+          );
+        filter:
+          drop-shadow(0 0 .8px rgba(226,255,253,.72))
+          drop-shadow(0 0 13px rgba(var(--assembly-rgb), .13));
+        transform: translateZ(2px);
+      }
+
+      .crystal-fragment__face::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          linear-gradient(
+            var(--fragment-light-angle),
+            rgba(247,255,255,.18),
+            transparent 32%,
+            rgba(var(--assembly-rgb),.08) 72%,
+            transparent
+          );
+        opacity: .74;
       }
 
       .crystal-card-shell.crystal-awaiting .crystal-fragment {
-        opacity: .72;
+        opacity: .84;
         animation: crystal-fragment-drift 2.8s ease-in-out infinite alternate;
         animation-delay: var(--fragment-delay);
         will-change: transform, opacity;
@@ -223,33 +303,42 @@
       @keyframes crystal-fragment-drift {
         from {
           transform:
-            translate(calc(-50% + var(--fragment-sx)), calc(-50% + var(--fragment-sy)))
-            rotate(var(--fragment-rotate))
-            scale(var(--fragment-idle-size));
-          filter: brightness(.84);
+            translate3d(
+              var(--fragment-idle-x),
+              var(--fragment-idle-y),
+              var(--fragment-idle-z)
+            )
+            rotateX(var(--fragment-idle-rx))
+            rotateY(var(--fragment-idle-ry))
+            rotateZ(var(--fragment-idle-rz))
+            scale(.76);
         }
         to {
           transform:
-            translate(calc(-50% + var(--fragment-sx) + 8px), calc(-50% + var(--fragment-sy) - 10px))
-            rotate(calc(var(--fragment-rotate) + 9deg))
-            scale(var(--fragment-drift-size));
-          filter: brightness(1.16);
+            translate3d(
+              calc(var(--fragment-idle-x) + 8px),
+              calc(var(--fragment-idle-y) - 10px),
+              calc(var(--fragment-idle-z) + 8px)
+            )
+            rotateX(calc(var(--fragment-idle-rx) + 7deg))
+            rotateY(calc(var(--fragment-idle-ry) - 8deg))
+            rotateZ(calc(var(--fragment-idle-rz) + 6deg))
+            scale(.8);
         }
       }
 
       @media (max-width: 900px) {
-        .crystal-assembly-layer {
-          inset: -18%;
+        .crystal-card-shell {
+          --assembly-depth-x: 9px;
+          --assembly-depth-y: 12px;
         }
 
-        .crystal-fragment {
-          width: clamp(22px, 8vw, 46px);
+        .crystal-fragment__face {
+          filter: drop-shadow(0 0 .7px rgba(226,255,253,.68));
         }
-      }
 
-      @media (max-width: 480px) {
-        .crystal-assembly-layer {
-          inset: -10%;
+        .crystal-fragment__depth {
+          opacity: .56;
         }
       }
 
@@ -280,27 +369,43 @@
     layer.setAttribute("aria-hidden", "true");
 
     FRAGMENTS.forEach((spec, index) => {
-      const fragment = document.createElement("i");
-      fragment.className = "crystal-fragment";
-      fragment.style.setProperty("--fragment-x", `${spec.x}%`);
-      fragment.style.setProperty("--fragment-y", `${spec.y}%`);
-      fragment.style.setProperty("--fragment-sx", `${spec.sx}%`);
-      fragment.style.setProperty("--fragment-sy", `${spec.sy}%`);
-      fragment.style.setProperty("--fragment-rotate", `${spec.rotate}deg`);
-      fragment.style.setProperty("--fragment-size", String(spec.size));
-      fragment.style.setProperty("--fragment-idle-size", String(spec.size * 0.72));
-      fragment.style.setProperty("--fragment-drift-size", String(spec.size * 0.78));
-      fragment.style.setProperty("--fragment-delay", `${-index * 115}ms`);
-      fragment.style.setProperty(
-        "--fragment-shape",
-        FRAGMENT_POLYGONS[index % FRAGMENT_POLYGONS.length],
+      const fragment = document.createElement("span");
+      const depth = document.createElement("i");
+      const face = document.createElement("i");
+      const angle = Math.atan2(
+        spec.y - CRYSTAL_CENTER[1],
+        spec.x - CRYSTAL_CENTER[0],
       );
+      const orbitX = Math.cos(angle) * (164 + spec.half * 26);
+      const orbitY = Math.sin(angle) * (132 + spec.half * 20);
+      const side = index % 2 === 0 ? -1 : 1;
+
+      fragment.className = "crystal-fragment";
+      fragment.classList.add(`crystal-fragment--${spec.kind}`);
+      depth.className = "crystal-fragment__depth";
+      face.className = "crystal-fragment__face";
+      fragment.style.setProperty("--fragment-shape", `polygon(${spec.points})`);
+      fragment.style.setProperty("--fragment-origin", `${spec.x}% ${spec.y}%`);
+      fragment.style.setProperty("--fragment-idle-x", `${orbitX.toFixed(2)}px`);
+      fragment.style.setProperty("--fragment-idle-y", `${orbitY.toFixed(2)}px`);
+      fragment.style.setProperty("--fragment-idle-z", `${side * (18 + spec.sector * 3)}px`);
+      fragment.style.setProperty("--fragment-idle-rx", `${side * (34 + spec.sector * 4)}deg`);
+      fragment.style.setProperty("--fragment-idle-ry", `${-side * (48 + spec.half * 18)}deg`);
+      fragment.style.setProperty("--fragment-idle-rz", `${spec.rotate.toFixed(2)}deg`);
+      fragment.style.setProperty("--fragment-delay", `${-index * 115}ms`);
+      fragment.style.setProperty("--fragment-stack", String(index + 1));
+      fragment.style.setProperty("--fragment-light-angle", `${28 + index * 23}deg`);
       fragment.dataset.index = String(index);
+      fragment.dataset.sector = String(spec.sector);
+      fragment.dataset.kind = spec.kind;
+      fragment.append(depth, face);
       layer.appendChild(fragment);
     });
 
     shell.appendChild(layer);
     fragments = [...layer.querySelectorAll(".crystal-fragment")];
+    shell.dataset.assemblyPieces = String(fragments.length);
+    shell.dataset.assemblyGeometry = "exact";
   }
 
   function syncThemeColor() {
@@ -324,8 +429,10 @@
   function clearRunTimers() {
     clearTimeout(startTimer);
     clearTimeout(settleTimer);
+    clearTimeout(cleanupTimer);
     startTimer = 0;
     settleTimer = 0;
+    cleanupTimer = 0;
   }
 
   function hideFragments() {
@@ -339,6 +446,7 @@
     clearRunTimers();
     cancelAnimations();
     shell?.classList.remove("crystal-awaiting", "crystal-assembling");
+    if (shell) shell.dataset.assemblyState = "idle";
     hideFragments();
     prism?.style.removeProperty("opacity");
     prism?.style.removeProperty("visibility");
@@ -351,6 +459,7 @@
     if (!shell || !prism) return;
     syncThemeColor();
     shell.classList.add("crystal-assembled");
+    shell.dataset.assemblyState = "locked";
     prism.style.removeProperty("opacity");
     prism.style.removeProperty("visibility");
     prism.style.removeProperty("filter");
@@ -381,18 +490,22 @@
     const x = number(pose.x).toFixed(2);
     const y = number(pose.y).toFixed(2);
     const z = number(pose.z).toFixed(2);
+    const rotateX = number(pose.rotateX).toFixed(2);
+    const rotateY = number(pose.rotateY).toFixed(2);
     const rotation = number(pose.rotation).toFixed(2);
     const scale = Math.max(0.08, number(pose.scale, 1)).toFixed(3);
-    return `translate3d(calc(-50% + ${x}px), calc(-50% + ${y}px), ${z}px) rotate(${rotation}deg) scale(${scale})`;
+    return `translate3d(${x}px, ${y}px, ${z}px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) rotateZ(${rotation}deg) scale(${scale})`;
   }
 
-  function finalPose(spec) {
+  function finalPose() {
     return {
       x: 0,
       y: 0,
       z: 0,
-      rotation: spec.rotate * 0.12,
-      scale: spec.size,
+      rotateX: 0,
+      rotateY: 0,
+      rotation: 0,
+      scale: 1,
     };
   }
 
@@ -423,13 +536,13 @@
     const total = FRAGMENTS.length;
     const direction = profile.direction;
     const angle = index / total * TAU + shapeIndex * 0.37;
-    const centerX = (50 - spec.x) / 100 * rect.width;
-    const centerY = (50 - spec.y) / 100 * rect.height;
+    const centerX = (CRYSTAL_CENTER[0] - spec.x) / 100 * rect.width;
+    const centerY = (CRYSTAL_CENTER[1] - spec.y) / 100 * rect.height;
     const radiusX = Math.max(150, rect.width * 0.58);
     const radiusY = Math.max(125, rect.height * 0.46);
     const side = index % 2 === 0 ? -1 : 1;
     const baseRotation = spec.rotate;
-    const baseScale = spec.size;
+    const baseScale = 1;
     const randomA = deterministic((shapeIndex + 1) * 97 + index * 19);
     const randomB = deterministic((shapeIndex + 1) * 53 + index * 29);
     let start;
@@ -690,6 +803,13 @@
         break;
     }
 
+    start.rotateX = (randomA - 0.5) * 92;
+    start.rotateY = side * (42 + randomB * 36);
+    middle.rotateX = (randomB - 0.5) * 42;
+    middle.rotateY = -side * (18 + randomA * 22);
+    near.rotateX = side * 5;
+    near.rotateY = -side * 6;
+
     return { start, middle, near };
   }
 
@@ -723,74 +843,124 @@
     shell.classList.remove("crystal-awaiting", "crystal-assembled");
     shell.classList.add("crystal-assembling");
     shell.dataset.assemblyProfile = profile.id;
+    shell.dataset.assemblyState = "assembling";
     prism.style.visibility = "visible";
 
     const restingPrism =
       "translateZ(0) rotateX(0deg) rotateY(0deg) rotateZ(0deg) scale(1)";
-    const prismFrames = initial
-      ? [
-          { opacity: 0, transform: profile.prismStart, offset: 0 },
-          { opacity: 0.1, transform: profile.prismStart, offset: 0.38 },
-          { opacity: 1, transform: restingPrism, offset: 1 },
-        ]
-      : [
-          { opacity: 1, transform: restingPrism, offset: 0 },
-          { opacity: 0.08, transform: profile.prismStart, offset: 0.24 },
-          { opacity: 0.14, transform: profile.prismStart, offset: 0.5 },
-          { opacity: 1, transform: restingPrism, offset: 1 },
-        ];
-
-    const prismAnimation = prism.animate(prismFrames, {
-      duration: profile.duration + (initial ? 150 : 80),
-      delay: initial ? 90 : 0,
-      easing: "cubic-bezier(.18,.78,.18,1)",
-      fill: "both",
-    });
-    activeAnimations.push(prismAnimation);
-
     const rect = shell.getBoundingClientRect();
     const compact = window.matchMedia("(max-width: 600px)").matches;
-    const activeIndices = fragments
-      .map((_, index) => index)
-      .filter((index) => !compact || index % 3 !== 2);
+    const staggerScale = compact ? 0.72 : 1;
     let maxDelay = 0;
-
-    fragments.forEach((fragment, index) => {
-      if (!activeIndices.includes(index)) {
-        fragment.style.opacity = "0";
-        return;
-      }
-
+    const fragmentRuns = fragments.map((fragment, index) => {
       const spec = FRAGMENTS[index];
       const poses = fragmentPoses(profile, spec, index, rect, shapeIndex);
       const delay =
         (initial ? 120 : 0) +
-        delayRank(profile, index, FRAGMENTS.length, shapeIndex) * profile.stagger;
+        delayRank(profile, index, FRAGMENTS.length, shapeIndex) *
+          profile.stagger *
+          staggerScale;
       maxDelay = Math.max(maxDelay, delay);
+      return { delay, fragment, poses, spec };
+    });
+    const assemblyDuration = profile.duration + maxDelay;
+    const prismDuration = assemblyDuration + 120;
+    const revealOffset = Math.min(
+      0.92,
+      Math.max(
+        0.78,
+        (maxDelay + profile.duration * 0.94) / prismDuration,
+      ),
+    );
+    const prismFrames = initial
+      ? [
+          { opacity: 0, transform: profile.prismStart, offset: 0 },
+          { opacity: 0, transform: profile.prismStart, offset: revealOffset },
+          {
+            opacity: 0.2,
+            transform: "translateZ(0) scale(.985)",
+            offset: Math.min(0.96, revealOffset + 0.07),
+          },
+          { opacity: 1, transform: restingPrism, offset: 1 },
+        ]
+      : [
+          { opacity: 0, transform: profile.prismStart, offset: 0 },
+          { opacity: 0, transform: profile.prismStart, offset: revealOffset },
+          {
+            opacity: 0.2,
+            transform: "translateZ(0) scale(.985)",
+            offset: Math.min(0.96, revealOffset + 0.07),
+          },
+          { opacity: 1, transform: restingPrism, offset: 1 },
+        ];
+
+    const prismAnimation = prism.animate(prismFrames, {
+      duration: prismDuration,
+      easing: "linear",
+      fill: "both",
+    });
+    activeAnimations.push(prismAnimation);
+
+    fragmentRuns.forEach(({ delay, fragment, poses, spec }) => {
+      const restitution = spec.kind === "core" ? 0.24 : 0.16;
+      const impact = {
+        x: -poses.near.x * restitution,
+        y: -poses.near.y * restitution,
+        z: spec.kind === "core" ? -2.4 : -3.4,
+        rotateX: -poses.near.rotateX * 0.22,
+        rotateY: -poses.near.rotateY * 0.22,
+        rotation: -poses.near.rotation * 0.16,
+        scale: 1 - restitution * 0.1,
+      };
+      const rebound = {
+        x: poses.near.x * restitution * 0.32,
+        y: poses.near.y * restitution * 0.32,
+        z: 1.5,
+        rotateX: poses.near.rotateX * 0.08,
+        rotateY: poses.near.rotateY * 0.08,
+        rotation: poses.near.rotation * 0.05,
+        scale: 1.008,
+      };
       const frames = [
         {
           opacity: 0,
           transform: poseTransform(poses.start),
+          easing: "cubic-bezier(.16,.78,.2,1)",
           offset: 0,
         },
         {
-          opacity: 0.9,
+          opacity: 1,
           transform: poseTransform(poses.start),
-          offset: 0.11,
+          easing: "cubic-bezier(.18,.82,.2,1)",
+          offset: 0.09,
         },
         {
-          opacity: 0.96,
+          opacity: 1,
           transform: poseTransform(poses.middle),
-          offset: 0.52,
+          easing: "cubic-bezier(.18,.88,.2,1)",
+          offset: 0.58,
         },
         {
           opacity: 1,
           transform: poseTransform(poses.near),
-          offset: 0.84,
+          easing: "cubic-bezier(.2,.9,.24,1)",
+          offset: 0.82,
         },
         {
-          opacity: 0,
-          transform: poseTransform(finalPose(spec)),
+          opacity: 1,
+          transform: poseTransform(impact),
+          easing: "cubic-bezier(.2,.72,.3,1)",
+          offset: 0.9,
+        },
+        {
+          opacity: 1,
+          transform: poseTransform(rebound),
+          easing: "ease-out",
+          offset: 0.96,
+        },
+        {
+          opacity: 1,
+          transform: poseTransform(finalPose()),
           offset: 1,
         },
       ];
@@ -798,7 +968,7 @@
       const animation = fragment.animate(frames, {
         duration: profile.duration,
         delay,
-        easing: "cubic-bezier(.2,.76,.18,1)",
+        easing: "linear",
         fill: "both",
       });
       activeAnimations.push(animation);
@@ -807,17 +977,22 @@
     settleTimer = window.setTimeout(() => {
       if (run !== generation) return;
       settleTimer = 0;
-      cancelAnimations();
       shell.classList.remove("crystal-assembling", "crystal-awaiting");
       shell.classList.add("crystal-assembled");
+      shell.dataset.assemblyState = "locked";
       prism.style.removeProperty("opacity");
       prism.style.removeProperty("visibility");
       prism.style.removeProperty("filter");
       prism.style.removeProperty("transform");
-      hideFragments();
       initialAssemblyPlayed = true;
       lastAssembledShape = shape;
-    }, profile.duration + maxDelay + 140);
+      cleanupTimer = window.setTimeout(() => {
+        if (run !== generation) return;
+        cleanupTimer = 0;
+        cancelAnimations();
+        hideFragments();
+      }, 230);
+    }, prismDuration + 20);
   }
 
   function scheduleAssembly(mode = "switch", delay = 0) {
@@ -825,6 +1000,7 @@
     stopRun();
     const run = generation;
     shell.dataset.assemblyProfile = profileForShape(currentShape).id;
+    shell.dataset.assemblyState = mode === "initial" ? "scattered" : "gathering";
 
     if (mode === "initial") {
       shell.classList.remove("crystal-assembled");
@@ -833,6 +1009,8 @@
     } else {
       shell.classList.remove("crystal-assembled");
       shell.classList.add("crystal-assembling");
+      prism.style.opacity = "0";
+      prism.style.visibility = "visible";
     }
 
     startTimer = window.setTimeout(() => {

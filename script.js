@@ -145,23 +145,23 @@ const loadModule = (path, label) =>
   });
 
 const tenWorldsModule = loadModule(
-  "./desi-ten-worlds.js?v=20260728-crystal-cinema-r10",
+  "./desi-ten-worlds.js?v=20260728-crystal-cinema-r11",
   "DESI ten-worlds module",
 );
 const visualQaModule = loadModule(
-  "./desi-visual-qa-final.js?v=20260728-crystal-cinema-r10",
+  "./desi-visual-qa-final.js?v=20260728-crystal-cinema-r11",
   "DESI visual QA corrections",
 );
 const crystalAssemblyModule = loadModule(
-  "./desi-crystal-assembly.js?v=20260728-crystal-cinema-r10",
+  "./desi-crystal-assembly.js?v=20260728-crystal-cinema-r11",
   "DESI crystal assembly animation",
 );
 const directorV4Module = loadModule(
-  "./desi-director-v4.js?v=20260728-crystal-cinema-r10",
+  "./desi-director-v4.js?v=20260728-crystal-cinema-r11",
   "DESI unified WebGL cinematic director v4",
 );
 const directorV6Module = loadModule(
-  "./desi-director-v6.js?v=20260728-crystal-cinema-r10",
+  "./desi-director-v6.js?v=20260728-crystal-cinema-r11",
   "DESI cinematic aesthetic director v6",
 );
 
@@ -204,7 +204,7 @@ const installCrystalCinemaStyles = () => {
     );
   };
   link.rel = "stylesheet";
-  link.href = "./desi-crystal-cinema.css?v=20260728-crystal-cinema-r10";
+  link.href = "./desi-crystal-cinema.css?v=20260728-crystal-cinema-r11";
   link.dataset.desiCrystalCinema = "true";
   link.addEventListener("load", alignHashTarget, { once: true });
   document.head.appendChild(link);
