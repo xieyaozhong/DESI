@@ -176,6 +176,8 @@
   let startTimer = 0;
   let settleTimer = 0;
   let cleanupTimer = 0;
+  let contactTimer = 0;
+  let pointerFrame = 0;
   let generation = 0;
 
   function prefersReducedMotion() {
@@ -430,9 +432,11 @@
     clearTimeout(startTimer);
     clearTimeout(settleTimer);
     clearTimeout(cleanupTimer);
+    clearTimeout(contactTimer);
     startTimer = 0;
     settleTimer = 0;
     cleanupTimer = 0;
+    contactTimer = 0;
   }
 
   function hideFragments() {
@@ -445,7 +449,7 @@
     generation += 1;
     clearRunTimers();
     cancelAnimations();
-    shell?.classList.remove("crystal-awaiting", "crystal-assembling");
+    shell?.classList.remove("crystal-awaiting", "crystal-assembling", "crystal-contact");
     if (shell) shell.dataset.assemblyState = "idle";
     hideFragments();
     prism?.style.removeProperty("opacity");
@@ -471,6 +475,9 @@
       initialAssemblyPlayed = true;
       lastAssembledShape = currentShape;
     }
+    shell.dispatchEvent(new CustomEvent("crystal:assembled", {
+      detail: { shape: currentShape, profile: shell.dataset.assemblyProfile },
+    }));
   }
 
   function revealAwaitingFragments() {
@@ -1002,6 +1009,7 @@
       settleTimer = 0;
       shell.classList.remove("crystal-assembling", "crystal-awaiting");
       shell.classList.add("crystal-assembled");
+      shell.classList.add("crystal-contact");
       shell.dataset.assemblyState = "locked";
       prism.style.removeProperty("opacity");
       prism.style.removeProperty("visibility");
@@ -1012,6 +1020,10 @@
       shell.dispatchEvent(new CustomEvent("crystal:assembled", {
         detail: { shape, profile: profile.id },
       }));
+      contactTimer = window.setTimeout(() => {
+        if (run === generation) shell.classList.remove("crystal-contact");
+        contactTimer = 0;
+      }, 150);
       cleanupTimer = window.setTimeout(() => {
         if (run !== generation) return;
         cleanupTimer = 0;
@@ -1120,7 +1132,12 @@
   function setupMotionToggle() {
     document.querySelector("#motion-toggle")?.addEventListener("click", () => {
       queueMicrotask(() => {
-        if (motionPaused()) settleImmediately();
+        if (motionPaused()) {
+          shell?.style.removeProperty("--crystal-pointer-x");
+          shell?.style.removeProperty("--crystal-pointer-y");
+          shell?.removeAttribute("data-facing");
+          settleImmediately();
+        }
         else if (passageVisible) scheduleAssembly("switch", 80);
       });
     });
@@ -1143,6 +1160,43 @@
     }
   }
 
+  function setupFinePointerTilt() {
+    if (!shell || !passage || !window.matchMedia("(pointer: fine)").matches) return;
+    let targetX = 0;
+    let targetY = 0;
+
+    const resetTilt = () => {
+      targetX = 0;
+      targetY = 0;
+      if (pointerFrame) return;
+      pointerFrame = requestAnimationFrame(() => {
+        pointerFrame = 0;
+        shell.style.removeProperty("--crystal-pointer-x");
+        shell.style.removeProperty("--crystal-pointer-y");
+        shell.removeAttribute("data-facing");
+      });
+    };
+
+    const paintTilt = () => {
+      pointerFrame = 0;
+      if (!passageVisible || motionPaused() || prefersReducedMotion()) return;
+      shell.style.setProperty("--crystal-pointer-x", `${(targetX * 2.2).toFixed(2)}deg`);
+      shell.style.setProperty("--crystal-pointer-y", `${(-targetY * 1.5).toFixed(2)}deg`);
+      if (targetX > .08) shell.dataset.facing = "right";
+      else if (targetX < -.08) shell.dataset.facing = "left";
+      else shell.removeAttribute("data-facing");
+    };
+
+    passage.addEventListener("pointermove", (event) => {
+      if (!passageVisible || motionPaused() || prefersReducedMotion()) return;
+      const rect = passage.getBoundingClientRect();
+      targetX = Math.max(-1, Math.min(1, (event.clientX - rect.left) / rect.width * 2 - 1));
+      targetY = Math.max(-1, Math.min(1, (event.clientY - rect.top) / Math.min(rect.height, innerHeight) * 2 - 1));
+      if (!pointerFrame) pointerFrame = requestAnimationFrame(paintTilt);
+    }, { passive: true });
+    passage.addEventListener("pointerleave", resetTilt, { passive: true });
+  }
+
   function init() {
     shell = document.querySelector("#crystal-card-shell");
     prism = shell?.querySelector(".crystal-prism") || null;
@@ -1155,6 +1209,7 @@
     setupThemeReplay();
     setupEntryAssembly();
     setupMotionToggle();
+    setupFinePointerTilt();
   }
 
   if (document.readyState === "loading") {

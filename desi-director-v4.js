@@ -372,7 +372,7 @@
       const link = existing || document.createElement("link");
       if (!existing) {
         link.rel = "stylesheet";
-        link.href = "./desi-director-v4.css?v=20260809-portfolio-r14";
+        link.href = "./desi-director-v4.css?v=20260809-portfolio-r16";
         link.dataset.desiDirectorV4 = "true";
         document.head.appendChild(link);
       }

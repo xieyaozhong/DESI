@@ -25,6 +25,23 @@
     ["closing", ["FINAL FRAME", "THE RULE CONTINUES"]],
   ]);
 
+  const scenePalette = new Map([
+    ["top", "122, 205, 221"],
+    ["crystal-passage", "var(--v6-rgb)"],
+    ["wave", "110, 222, 235"],
+    ["orbit", "163, 137, 246"],
+    ["spiral", "229, 190, 111"],
+    ["fractal", "110, 92, 188"],
+    ["modular", "236, 124, 174"],
+    ["fourier", "239, 173, 92"],
+    ["lorenz", "225, 94, 112"],
+    ["cellular", "108, 149, 232"],
+    ["ulam", "209, 220, 126"],
+    ["rose", "227, 121, 192"],
+    ["system-note", "128, 211, 220"],
+    ["closing", "166, 140, 255"],
+  ]);
+
   const state = {
     sections: [],
     activeSection: null,
@@ -52,7 +69,7 @@
       const link = existing || document.createElement("link");
       if (!existing) {
         link.rel = "stylesheet";
-        link.href = "./desi-director-v6.css?v=20260809-portfolio-r14";
+        link.href = "./desi-director-v6.css?v=20260809-portfolio-r16";
         link.dataset.desiDirectorV6 = "true";
         document.head.appendChild(link);
       }
@@ -201,6 +218,10 @@
     state.activeIndex = index;
     document.body.classList.toggle("is-crystal-archive", section.id === "crystal-passage");
     document.documentElement.style.setProperty("--v6-scene", String(index));
+    document.documentElement.style.setProperty(
+      "--scene-rgb",
+      scenePalette.get(section.id) || "151, 211, 235",
+    );
     updateTitleCard(section, index);
     if (previous >= 0 && scrollY > innerHeight * 0.25 && focus > 0.3) {
       playCut(index < previous ? -1 : 1);

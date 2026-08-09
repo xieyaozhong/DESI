@@ -3,6 +3,7 @@
   --portfolio-ease: cubic-bezier(.16, .78, .18, 1);
   --portfolio-panel: rgba(4, 12, 17, .72);
   --portfolio-line: rgba(220, 242, 246, .16);
+  --scene-rgb: 122, 205, 221;
 }
 
 /* Keep the grade on the image, not on the interface. */
@@ -45,7 +46,7 @@ body.desi-v6-cinema > .grain {
 }
 
 body.desi-v6-cinema #desi-director-webgl-v4 {
-  opacity: .72;
+  opacity: .62;
 }
 
 .desi-v4-loader {
@@ -94,7 +95,8 @@ body.desi-v6-cinema .chapter-nav {
 
 body.desi-v6-cinema .chapter-nav a {
   color: rgba(223, 238, 241, .66);
-  font-size: .56rem;
+  font-size: clamp(.62rem, .55vw, .7rem);
+  letter-spacing: .12em;
 }
 
 body.desi-v6-cinema .chapter-nav a:hover,
@@ -116,8 +118,8 @@ body.desi-v6-cinema .chapter-nav a[aria-current] {
   min-height: 44px;
   padding: 0 12px;
   color: rgba(222, 238, 241, .66);
-  font: 500 .52rem/1 var(--mono);
-  letter-spacing: .18em;
+  font: 500 clamp(.61rem, .54vw, .68rem)/1 var(--mono);
+  letter-spacing: .12em;
   text-decoration: none;
   transition: color .25s ease, transform .35s var(--portfolio-ease);
 }
@@ -135,14 +137,14 @@ body.desi-v6-cinema .hero {
 }
 
 body.desi-v6-cinema .hero-copy {
-  max-width: min(58vw, 760px);
+  max-width: min(49vw, 630px);
 }
 
 body.desi-v6-cinema .hero h1 {
-  max-width: 7.6ch;
+  max-width: 7.2ch;
   margin: .16em 0 .24em;
   font-family: var(--serif) !important;
-  font-size: clamp(4.4rem, 8.2vw, 8.5rem) !important;
+  font-size: clamp(4.6rem, 7.6vw, 7.9rem) !important;
   font-weight: 400 !important;
   line-height: .88 !important;
   letter-spacing: -.042em !important;
@@ -185,8 +187,8 @@ body.desi-v6-cinema .hero-lede {
 
 .hero-proof span {
   color: rgba(194, 218, 223, .55);
-  font: 500 .46rem/1.35 var(--mono);
-  letter-spacing: .16em;
+  font: 500 clamp(.58rem, .5vw, .66rem)/1.35 var(--mono);
+  letter-spacing: .12em;
 }
 
 body.desi-v6-cinema .hero-actions {
@@ -194,9 +196,9 @@ body.desi-v6-cinema .hero-actions {
 }
 
 body.desi-v6-cinema .hero-object {
-  right: clamp(-72px, 2vw, 24px);
-  width: min(43vw, 650px);
-  opacity: .26 !important;
+  right: clamp(-64px, 0vw, 8px);
+  width: min(45vw, 680px);
+  opacity: .2 !important;
   filter: saturate(.66) contrast(1.02) !important;
   transform: translate3d(var(--v6-object-x), calc(-50% + var(--v6-object-y)), 0) scale(.94) !important;
 }
@@ -223,7 +225,7 @@ body.desi-v6-cinema .crystal-reshuffle {
 
 /* Editorial hierarchy for all ten laboratories. */
 body.desi-v6-cinema .chapter {
-  min-height: 126svh !important;
+  min-height: 112svh !important;
 }
 
 body.desi-v6-cinema .chapter-grid {
@@ -253,14 +255,14 @@ body.desi-v6-cinema .chapter-intro {
 
 body.desi-v6-cinema .lab-panel {
   border-color: rgba(226, 243, 246, .15) !important;
-  background: linear-gradient(180deg, rgba(7, 20, 27, .7), rgba(2, 8, 12, .68)) !important;
-  box-shadow: 0 42px 112px rgba(0, 0, 0, .42), inset 0 0 0 1px rgba(255, 255, 255, .02) !important;
-  backdrop-filter: blur(16px) saturate(.84) !important;
+  background: linear-gradient(180deg, rgba(7, 20, 27, .78), rgba(2, 8, 12, .76)) !important;
+  box-shadow: 0 26px 76px rgba(0, 0, 0, .36), inset 0 0 0 1px rgba(255, 255, 255, .025) !important;
+  backdrop-filter: none !important;
 }
 
 body.desi-v6-cinema .desi-v6-active .lab-panel {
-  border-color: rgba(var(--v6-rgb), .28) !important;
-  box-shadow: 0 46px 120px rgba(0, 0, 0, .5), 0 0 90px rgba(var(--v6-rgb), .06), inset 0 0 0 1px rgba(255, 255, 255, .025) !important;
+  border-color: rgba(var(--scene-rgb), .32) !important;
+  box-shadow: 0 34px 88px rgba(0, 0, 0, .42), 0 0 70px rgba(var(--scene-rgb), .08), inset 0 0 0 1px rgba(255, 255, 255, .025) !important;
 }
 
 body.desi-v6-cinema .formula,
@@ -359,6 +361,60 @@ body.desi-v6-cinema #crystal-theme-rail button.is-active {
 body.is-crystal-archive #desi-director-webgl-v4 {
   opacity: .24 !important;
   filter: saturate(.46) brightness(.62) contrast(1.02) !important;
+}
+
+/* A quieter gallery rhythm: the systems, not the chrome, lead the page. */
+body.desi-v6-cinema .desi-v4-letterbox,
+body.desi-v6-cinema .desi-v4-cursor,
+body.desi-v6-cinema .desi-v6-title-card,
+body.desi-v6-cinema .desi-v6-cut,
+body.desi-v6-cinema .desi-v6-glare {
+  display: none !important;
+}
+
+body.desi-v6-cinema .desi-v4-scene-meter {
+  opacity: .24 !important;
+}
+
+body.desi-v6-cinema #crystal-passage {
+  min-height: 500vh !important;
+}
+
+body.desi-v6-cinema .chapter::before {
+  border-color: rgba(var(--scene-rgb), .13) !important;
+  background:
+    linear-gradient(90deg, rgba(3, 8, 12, .76), rgba(3, 8, 12, .32) 58%, transparent),
+    radial-gradient(circle at 76% 48%, rgba(var(--scene-rgb), .13), transparent 36rem) !important;
+  backdrop-filter: none !important;
+}
+
+body.desi-v6-cinema .chapter-alt::before {
+  background:
+    linear-gradient(270deg, rgba(3, 8, 12, .76), rgba(3, 8, 12, .32) 58%, transparent),
+    radial-gradient(circle at 23% 48%, rgba(var(--scene-rgb), .13), transparent 36rem) !important;
+}
+
+body.desi-v6-cinema .lab-panel .canvas-wrap {
+  border-top: 1px solid rgba(var(--scene-rgb), .16);
+  background: radial-gradient(circle at 64% 30%, rgba(var(--scene-rgb), .07), transparent 48%);
+}
+
+body.motion-paused .hero-copy,
+body.motion-paused .hero-copy > *,
+body.motion-paused .chapter-copy,
+body.motion-paused .chapter-copy > *,
+body.motion-paused .lab-panel,
+body.motion-paused .desi-v6-heading {
+  opacity: 1 !important;
+  transform: none !important;
+  filter: none !important;
+  clip-path: none !important;
+  animation: none !important;
+  transition: none !important;
+}
+
+body.motion-paused .chapter-grid {
+  transform: none !important;
 }
 
 /* A compact case-study proof point for recruiters and reviewers. */
@@ -556,6 +612,10 @@ body.is-crystal-archive #desi-director-webgl-v4 {
   body.desi-v6-cinema .chapter {
     min-height: auto !important;
     padding-block: 112px 88px;
+  }
+
+  body.desi-v6-cinema #crystal-passage {
+    min-height: 440vh !important;
   }
 
   body.desi-v6-cinema .chapter h2 {

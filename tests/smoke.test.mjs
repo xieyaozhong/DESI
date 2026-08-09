@@ -59,7 +59,7 @@ test("every local stylesheet, script, icon, manifest, and preview referenced by 
   }
 });
 
-test("active entry pipeline uses one portfolio-r14 cache version", async () => {
+test("active entry pipeline uses one portfolio-r16 cache version", async () => {
   const entryFiles = [
     ["index.html", indexHtml],
     ["script.js", entryScript],
@@ -71,10 +71,10 @@ test("active entry pipeline uses one portfolio-r14 cache version", async () => {
   );
 
   assert.ok(versions.length >= 10, "expected versioned CSS and JavaScript entry assets");
-  assert.deepEqual([...new Set(versions)], ["20260809-portfolio-r14"]);
+  assert.deepEqual([...new Set(versions)], ["20260809-portfolio-r16"]);
 
   for (const [name, source] of entryFiles) {
-    assert.doesNotMatch(source, /portfolio-r(?:11|12|13)\b/, `${name} contains a stale pre-r14 entry reference`);
+    assert.doesNotMatch(source, /portfolio-r(?:11|12|13|14|15)\b/, `${name} contains a stale pre-r16 entry reference`);
   }
 });
 
@@ -134,4 +134,17 @@ test("interactive crystal controls expose state and reduced-motion fallbacks", (
   assert.match(crystalAssembly, /matchMedia\([\s\S]*?prefers-reduced-motion:\s*reduce/);
   assert.match(crystalCss, /@media\s*\(prefers-reduced-motion:\s*reduce\)/);
   assert.match(polishCss, /@media\s*\(prefers-reduced-motion:\s*reduce\)/);
+});
+
+test("crystal themes use internal facets and wait for a physical lock to reveal", () => {
+  assert.match(tenWorlds, /const\s+FACET_PRESETS\s*=\s*\{/);
+  assert.match(tenWorlds, /dataset\.topicState\s*=\s*["']sealed["']/);
+  assert.match(tenWorlds, /passage\.style\.setProperty\(["']--crystal-rgb["']/);
+  assert.match(tenWorlds, /addEventListener\(["']crystal:assembled["'],\s*revealCrystalTopic\)/);
+  assert.match(crystalAssembly, /new CustomEvent\(["']crystal:assembled["']/);
+  assert.match(crystalCss, /\[data-topic-state=["']sealed["']\]/);
+  assert.match(crystalCss, /crystal-lock-pulse/);
+  assert.match(crystalCss, /crystal-glint-sweep/);
+  assert.match(crystalCss, /#crystal-theme-rail:hover/);
+  assert.match(polishCss, /body\.motion-paused \.hero-copy/);
 });

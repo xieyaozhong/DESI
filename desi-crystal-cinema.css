@@ -61,7 +61,7 @@ body.desi-v6-cinema #crystal-canvas {
 body.desi-v6-cinema #crystal-card-shell {
   --crystal-face-outline: polygon(23% 0, 78% 7%, 100% 38%, 83% 88%, 54% 100%, 11% 78%, 0 31%);
   --crystal-topic-face: polygon(24% 9%, 73% 11%, 92% 38%, 78% 79%, 54% 93%, 15% 73%, 7% 32%);
-  --crystal-topic-depth: 24px;
+  --crystal-topic-depth: 36px;
   top: 45%;
   left: 57%;
   width: min(46vw, 63svh, 650px) !important;
@@ -71,8 +71,8 @@ body.desi-v6-cinema #crystal-card-shell {
   filter: none !important;
   transform:
     translate3d(-50%, -50%, 0)
-    rotateX(2.6deg)
-    rotateY(-8deg)
+    rotateX(calc(4.2deg + var(--crystal-pointer-y, 0deg)))
+    rotateY(calc(-11deg + var(--crystal-pointer-x, 0deg)))
     rotateZ(-1deg) !important;
   transform-style: preserve-3d !important;
   transform-origin: center;
@@ -84,7 +84,7 @@ body.desi-v6-cinema #crystal-card-shell .crystal-prism {
 }
 
 body.desi-v6-cinema #crystal-card-shell .crystal-prism[data-crystal-shape] {
-  transform: translateZ(0);
+  transform: translateZ(0) var(--crystal-prism-tilt, rotateZ(0deg));
 }
 
 body.desi-v6-cinema #crystal-card-shell .crystal-prism[data-crystal-shape]
@@ -114,33 +114,49 @@ body.desi-v6-cinema #crystal-card-shell .crystal-shard-body {
 body.desi-v6-cinema #crystal-card-shell .crystal-shard-depth {
   opacity: .44;
   filter: drop-shadow(0 18px 28px rgba(0, 0, 0, .45)) !important;
-  transform: translate3d(15px, 20px, -38px) !important;
+  transform: translate3d(
+    var(--crystal-depth-x, 15px),
+    var(--crystal-depth-y, 20px),
+    var(--crystal-depth-z, -38px)
+  ) !important;
 }
 
 body.desi-v6-cinema #crystal-card-shell .crystal-prism[data-crystal-shape]
 .crystal-shard-facet {
   display: block !important;
-  opacity: .48;
+  opacity: var(--crystal-facet-opacity, .58);
   transform: translateZ(11px);
 }
 
 body.desi-v6-cinema #crystal-card-shell .crystal-shard-facet-left {
+  --crystal-facet-opacity: var(--crystal-facet-left, .48);
   clip-path: polygon(23% 0, 24% 9%, 7% 32%, 15% 73%, 11% 78%, 0 31%);
+  background:
+    linear-gradient(102deg, rgba(232, 255, 253, .58), transparent 38%),
+    linear-gradient(158deg, rgba(var(--crystal-rgb), .22), rgba(4, 26, 38, .92)) !important;
 }
 
 body.desi-v6-cinema #crystal-card-shell .crystal-shard-facet-right {
+  --crystal-facet-opacity: var(--crystal-facet-right, .48);
   clip-path: polygon(78% 7%, 100% 38%, 83% 88%, 78% 79%, 92% 38%, 73% 11%);
+  background:
+    linear-gradient(252deg, rgba(202, 194, 255, .64), transparent 42%),
+    linear-gradient(128deg, rgba(var(--crystal-rgb), .19), rgba(5, 12, 25, .96)) !important;
 }
 
 body.desi-v6-cinema #crystal-card-shell .crystal-shard-facet-bottom {
+  --crystal-facet-opacity: var(--crystal-facet-bottom, .48);
   clip-path: polygon(15% 73%, 54% 93%, 78% 79%, 83% 88%, 54% 100%, 11% 78%);
+  background:
+    linear-gradient(178deg, rgba(var(--crystal-rgb), .17), rgba(3, 10, 20, .96)),
+    linear-gradient(90deg, rgba(172, 146, 255, .52), transparent 68%) !important;
 }
 
 body.desi-v6-cinema #crystal-card-shell .crystal-prism[data-crystal-shape]
 .crystal-edge-network {
   display: block !important;
   clip-path: var(--crystal-face-outline);
-  opacity: .28;
+  opacity: var(--crystal-edge-alpha, .34);
 }
 
 body.desi-v6-cinema #crystal-card-shell .crystal-topic-face {
@@ -152,22 +168,91 @@ body.desi-v6-cinema #crystal-card-shell .crystal-topic-face {
     inset 0 0 0 1px rgba(219, 255, 252, .22),
     inset 0 0 72px rgba(var(--crystal-rgb), .1) !important;
   backface-visibility: hidden;
-  transform: translateZ(var(--crystal-topic-depth));
+  transform: translateZ(var(--crystal-topic-depth)) scale(var(--crystal-topic-scale, 1));
   transform-origin: center;
+  transition: opacity .2s var(--crystal-cinema-ease), transform .24s var(--crystal-cinema-ease), filter .24s ease;
 }
 
 body.desi-v6-cinema #crystal-card-shell .crystal-topic-card {
+  isolation: isolate;
   background:
     radial-gradient(circle at 66% 34%, rgba(var(--crystal-rgb), .18), transparent 46%),
     rgba(3, 19, 29, .54) !important;
 }
 
+body.desi-v6-cinema #crystal-card-shell .crystal-topic-card::before,
+body.desi-v6-cinema #crystal-card-shell .crystal-topic-card::after {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  inset: -5%;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  transition: opacity .24s ease, transform .36s var(--crystal-cinema-ease), clip-path .42s var(--crystal-cinema-ease);
+}
+
+body.desi-v6-cinema #crystal-card-shell .crystal-topic-card::before {
+  clip-path: var(--crystal-plane-a, polygon(0 0, 62% 0, 38% 100%, 0 78%));
+  background:
+    linear-gradient(var(--crystal-light-angle, 140deg), rgba(242, 255, 253, .3), transparent 58%),
+    linear-gradient(132deg, rgba(var(--crystal-rgb), .16), transparent 64%);
+  opacity: .42;
+  transform: translate3d(-1%, -1%, 0) skewX(-2deg);
+}
+
+body.desi-v6-cinema #crystal-card-shell .crystal-topic-card::after {
+  clip-path: var(--crystal-plane-b, polygon(62% 0, 100% 0, 100% 100%, 42% 100%));
+  background:
+    linear-gradient(calc(var(--crystal-light-angle, 140deg) + 76deg), rgba(185, 159, 255, .26), transparent 58%),
+    linear-gradient(160deg, transparent 30%, rgba(var(--crystal-rgb), .2));
+  opacity: .34;
+  transform: translate3d(1%, 1%, 0) skewX(2deg);
+}
+
+body.desi-v6-cinema #crystal-card-shell .crystal-prism[data-topic-state="sealed"] .crystal-topic-face {
+  --crystal-topic-scale: .978;
+  opacity: .24;
+  filter: saturate(.55) brightness(.72);
+}
+
+body.desi-v6-cinema #crystal-card-shell .crystal-prism[data-topic-state="sealed"] .crystal-topic-card::before,
+body.desi-v6-cinema #crystal-card-shell .crystal-prism[data-topic-state="sealed"] .crystal-topic-card::after {
+  opacity: .08;
+}
+
+body.desi-v6-cinema #crystal-card-shell .crystal-prism[data-topic-state="revealed"] .crystal-topic-face {
+  --crystal-topic-scale: 1;
+  opacity: 1;
+  filter: none;
+}
+
 body.desi-v6-cinema #crystal-card-shell .crystal-card-glass {
+  z-index: 2;
   background:
     linear-gradient(148deg, rgba(235, 255, 255, .16), transparent 19%),
     linear-gradient(34deg, transparent 58%, rgba(166, 140, 255, .11) 59%, transparent 76%),
     linear-gradient(112deg, transparent 46%, rgba(var(--crystal-rgb), .1) 47%, transparent 66%),
     linear-gradient(180deg, transparent 42%, rgba(1, 10, 17, .38));
+}
+
+body.desi-v6-cinema #crystal-card-shell .crystal-prism.crystal-glint .crystal-card-glass::before {
+  animation: crystal-glint-sweep .72s cubic-bezier(.14, .76, .22, 1) both;
+}
+
+@keyframes crystal-glint-sweep {
+  from { transform: translateX(-165%) rotate(-24deg); opacity: 0; }
+  20% { opacity: .94; }
+  to { transform: translateX(660%) rotate(-24deg); opacity: 0; }
+}
+
+body.desi-v6-cinema #crystal-card-shell.crystal-contact .crystal-edge-network {
+  animation: crystal-lock-pulse .12s cubic-bezier(.12, .78, .25, 1) both;
+}
+
+@keyframes crystal-lock-pulse {
+  0% { opacity: var(--crystal-edge-alpha, .34); transform: translateZ(18px) scale(1); }
+  42% { opacity: .86; transform: translateZ(28px) scale(1.012); }
+  100% { opacity: var(--crystal-edge-alpha, .34); transform: translateZ(18px) scale(1); }
 }
 
 body.desi-v6-cinema #crystal-caption {
@@ -231,7 +316,7 @@ body.desi-v6-cinema #crystal-caption .crystal-caption__index {
   display: flex;
   align-items: center;
   gap: 12px;
-  color: rgba(var(--v6-rgb), .66);
+  color: rgba(var(--crystal-rgb, var(--v6-rgb)), .66);
   font-family: var(--mono);
   font-size: .48rem;
   font-variant-numeric: tabular-nums;
@@ -301,7 +386,7 @@ body.desi-v6-cinema #crystal-passage .crystal-reshuffle {
   height: 40px;
   min-height: 40px;
   padding: 0;
-  border-color: rgba(var(--v6-rgb), .22);
+  border-color: rgba(var(--crystal-rgb, var(--v6-rgb)), .26);
   border-radius: 999px;
   background: rgba(3, 20, 29, .18);
   color: rgba(228, 246, 245, .62);
@@ -364,13 +449,64 @@ body.desi-v6-cinema #crystal-theme-rail button::before {
 
 body.desi-v6-cinema #crystal-theme-rail button.is-active::before {
   width: 24px !important;
-  background: rgb(var(--v6-rgb)) !important;
-  box-shadow: 0 0 12px rgba(var(--v6-rgb), .42) !important;
+  background: rgb(var(--crystal-rgb, var(--v6-rgb))) !important;
+  box-shadow: 0 0 12px rgba(var(--crystal-rgb, var(--v6-rgb)), .42) !important;
 }
 
 body.desi-v6-cinema #crystal-theme-rail button:focus-visible {
-  outline: 1px solid rgba(var(--v6-rgb), .8);
+  outline: 1px solid rgba(var(--crystal-rgb, var(--v6-rgb)), .8);
   outline-offset: 5px;
+}
+
+@media (min-width: 901px) and (hover: hover) and (pointer: fine) {
+  body.desi-v6-cinema #crystal-theme-rail {
+    transition: width .32s var(--crystal-cinema-ease), opacity .25s ease;
+  }
+
+  body.desi-v6-cinema #crystal-theme-rail:hover,
+  body.desi-v6-cinema #crystal-theme-rail:focus-within {
+    width: 148px;
+    opacity: .82 !important;
+  }
+
+  body.desi-v6-cinema #crystal-theme-rail button {
+    gap: 10px;
+    transition: width .32s var(--crystal-cinema-ease), min-height .32s var(--crystal-cinema-ease), height .32s var(--crystal-cinema-ease);
+  }
+
+  body.desi-v6-cinema #crystal-theme-rail:hover button,
+  body.desi-v6-cinema #crystal-theme-rail:focus-within button {
+    width: 148px !important;
+    min-height: 20px !important;
+    height: 20px !important;
+  }
+
+  body.desi-v6-cinema #crystal-theme-rail button > small {
+    display: block !important;
+    width: 0;
+    min-width: 0;
+    overflow: hidden;
+    color: rgba(224, 241, 243, .58);
+    font: 500 .56rem/1 var(--mono);
+    letter-spacing: .08em;
+    opacity: 0;
+    transform: translateX(7px);
+    transition: width .32s var(--crystal-cinema-ease), opacity .2s ease, transform .32s var(--crystal-cinema-ease), color .2s ease;
+    white-space: nowrap;
+  }
+
+  body.desi-v6-cinema #crystal-theme-rail:hover button > small,
+  body.desi-v6-cinema #crystal-theme-rail:focus-within button > small {
+    width: 108px;
+    opacity: .58;
+    transform: translateX(0);
+  }
+
+  body.desi-v6-cinema #crystal-theme-rail:hover button.is-active > small,
+  body.desi-v6-cinema #crystal-theme-rail:focus-within button.is-active > small {
+    color: rgb(var(--crystal-rgb, var(--v6-rgb)));
+    opacity: .94;
+  }
 }
 
 body.is-crystal-archive #desi-director-webgl-v4 {
@@ -520,6 +656,11 @@ body.is-crystal-archive .desi-v4-scene-meter {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  body.desi-v6-cinema #crystal-card-shell.crystal-contact .crystal-edge-network,
+  body.desi-v6-cinema #crystal-card-shell .crystal-prism.crystal-glint .crystal-card-glass::before {
+    animation: none !important;
+  }
+
   body.desi-v6-cinema #crystal-passage {
     height: auto !important;
     min-height: 0 !important;

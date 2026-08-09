@@ -39,6 +39,19 @@
 
   const themeById = new Map(themes.map((theme) => [theme.id, theme]));
 
+  const FACET_PRESETS = {
+    wave: { left: .4, right: .57, bottom: .43, edge: .33, depthX: "12px", depthY: "20px", depthZ: "-36px", tilt: "rotateZ(-.5deg)", light: "132deg", planeA: "polygon(0 0, 57% 0, 27% 100%, 0 74%)", planeB: "polygon(66% 0, 100% 0, 100% 100%, 38% 100%)" },
+    orbit: { left: .33, right: .63, bottom: .36, edge: .42, depthX: "18px", depthY: "15px", depthZ: "-34px", tilt: "rotateZ(1.3deg)", light: "118deg", planeA: "polygon(0 14%, 52% 0, 38% 100%, 0 82%)", planeB: "polygon(57% 0, 100% 16%, 100% 86%, 65% 100%)" },
+    spiral: { left: .56, right: .35, bottom: .48, edge: .3, depthX: "10px", depthY: "25px", depthZ: "-40px", tilt: "rotateZ(-2deg)", light: "155deg", planeA: "polygon(0 0, 77% 0, 44% 57%, 17% 100%, 0 100%)", planeB: "polygon(68% 0, 100% 0, 100% 100%, 34% 100%, 54% 48%)" },
+    fractal: { left: .46, right: .47, bottom: .58, edge: .52, depthX: "16px", depthY: "23px", depthZ: "-42px", tilt: "rotateZ(.5deg)", light: "142deg", planeA: "polygon(0 0, 48% 0, 27% 28%, 61% 52%, 20% 100%, 0 78%)", planeB: "polygon(68% 0, 100% 0, 100% 100%, 50% 100%, 72% 65%, 41% 43%)" },
+    modular: { left: .31, right: .67, bottom: .32, edge: .48, depthX: "21px", depthY: "16px", depthZ: "-32px", tilt: "rotateZ(1.7deg)", light: "104deg", planeA: "polygon(0 0, 64% 0, 42% 100%, 0 100%)", planeB: "polygon(49% 0, 100% 0, 100% 82%, 78% 100%, 28% 100%)" },
+    fourier: { left: .54, right: .39, bottom: .41, edge: .4, depthX: "9px", depthY: "20px", depthZ: "-38px", tilt: "rotateZ(-1.2deg)", light: "166deg", planeA: "polygon(0 0, 71% 0, 42% 100%, 0 86%)", planeB: "polygon(72% 0, 100% 0, 100% 100%, 58% 100%, 47% 54%)" },
+    lorenz: { left: .61, right: .61, bottom: .29, edge: .56, depthX: "15px", depthY: "20px", depthZ: "-37px", tilt: "rotateZ(.2deg)", light: "138deg", planeA: "polygon(0 0, 50% 16%, 43% 100%, 0 86%)", planeB: "polygon(50% 16%, 100% 0, 100% 86%, 56% 100%)" },
+    cellular: { left: .29, right: .49, bottom: .61, edge: .45, depthX: "18px", depthY: "25px", depthZ: "-34px", tilt: "rotateZ(.8deg)", light: "128deg", planeA: "polygon(0 0, 58% 0, 58% 28%, 31% 28%, 31% 74%, 0 74%)", planeB: "polygon(58% 0, 100% 0, 100% 100%, 69% 100%, 69% 51%, 43% 51%)" },
+    ulam: { left: .44, right: .53, bottom: .37, edge: .62, depthX: "14px", depthY: "18px", depthZ: "-39px", tilt: "rotateZ(-.7deg)", light: "122deg", planeA: "polygon(0 0, 58% 0, 38% 48%, 0 100%)", planeB: "polygon(62% 0, 100% 0, 100% 100%, 58% 52%)" },
+    rose: { left: .5, right: .43, bottom: .54, edge: .38, depthX: "11px", depthY: "23px", depthZ: "-40px", tilt: "rotateZ(-1.6deg)", light: "154deg", planeA: "polygon(0 0, 55% 0, 34% 47%, 52% 100%, 0 82%)", planeB: "polygon(48% 0, 100% 0, 100% 83%, 47% 100%, 64% 49%)" },
+  };
+
   function injectEnhancementStyles() {
     const style = document.createElement("style");
     style.id = "desi-ten-worlds-styles";
@@ -206,15 +219,99 @@
 
   function createDeck(force = false) { const key = "desi.crystal.deck.v4"; if (!force) { try { const stored = JSON.parse(sessionStorage.getItem(key) || "null"); if (stored?.length === 6 && stored.every((id) => themeById.has(id))) return stored.map((id) => themeById.get(id)); } catch {} } const ids = themes.map((theme) => theme.id); for (let i = ids.length - 1; i > 0; i -= 1) { const j = Math.floor(Math.random() * (i + 1)); [ids[i], ids[j]] = [ids[j], ids[i]]; } const selected = ids.slice(0, 6); try { sessionStorage.setItem(key, JSON.stringify(selected)); } catch {} return selected.map((id) => themeById.get(id)); }
 
+  function applyCrystalFacetPreset(prism, shape) {
+    if (!prism) return;
+    const preset = FACET_PRESETS[shape] || FACET_PRESETS.wave;
+    const values = {
+      "--crystal-facet-left": preset.left,
+      "--crystal-facet-right": preset.right,
+      "--crystal-facet-bottom": preset.bottom,
+      "--crystal-edge-alpha": preset.edge,
+      "--crystal-depth-x": preset.depthX,
+      "--crystal-depth-y": preset.depthY,
+      "--crystal-depth-z": preset.depthZ,
+      "--crystal-prism-tilt": preset.tilt,
+      "--crystal-light-angle": preset.light,
+      "--crystal-plane-a": preset.planeA,
+      "--crystal-plane-b": preset.planeB,
+    };
+    Object.entries(values).forEach(([name, value]) => {
+      prism.style.setProperty(name, String(value));
+    });
+  }
+
+  function revealCrystalTopic(event) {
+    const prism = $(".crystal-prism");
+    const assembledShape = event.detail?.shape;
+    if (!prism || (assembledShape && prism.dataset.crystalShape !== assembledShape)) return;
+    prism.dataset.topicState = "revealed";
+    if (state.paused || prefersReducedMotion.matches) return;
+    prism.classList.remove("crystal-glint");
+    requestAnimationFrame(() => prism.classList.add("crystal-glint"));
+  }
+
   function setupCrystalPassage() {
     state.crystalDeck = createDeck(); const rail = $("#crystal-theme-rail"); const button = $("#crystal-reshuffle");
+    $("#crystal-card-shell")?.addEventListener("crystal:assembled", revealCrystalTopic);
     if (rail) { rail.setAttribute("aria-hidden", "false"); rail.addEventListener("click", (event) => { const item = event.target.closest("[data-crystal-index]"); if (!item) return; setCrystalTheme(Number(item.dataset.crystalIndex), true); }); }
     button?.addEventListener("click", () => { state.crystalDeck = createDeck(true); state.crystalIndex = -1; setupCrystalPassageRail(); setCrystalTheme(0, false); const announcement = $("#crystal-draw-announcement"); if (announcement) announcement.textContent = `已重新抽取：${state.crystalDeck.map((theme) => theme.title).join("、")}`; });
     setupCrystalPassageRail(); setCrystalTheme(0, false);
     const canvas = $("#crystal-canvas"); const context = safeContext(canvas); if (canvas && context) { let metrics = resizeCanvas(canvas, context, 1.5); if ("ResizeObserver" in window) new ResizeObserver(() => { metrics = resizeCanvas(canvas, context, 1.5); const scene = state.scenes.get("crystal-field"); if (scene) scene.dirty = true; state.crystalTopicDirty = true; requestRender(); }).observe(canvas); state.scenes.set("crystal-field", { id: "crystal-field", continuous: true, dirty: true, draw(time) { if (!state.visible.has("crystal-passage")) return; drawCrystalField(context, metrics.width, metrics.height, time, state.crystalDeck[state.crystalIndex] || state.crystalDeck[0]); } }); }
   }
   function setupCrystalPassageRail() { const rail = $("#crystal-theme-rail"); if (!rail) return; rail.setAttribute("role", "group"); rail.setAttribute("aria-label", "已抽取的水晶主題"); rail.innerHTML = state.crystalDeck.map((theme, index) => `<button type="button" data-crystal-index="${index}" aria-label="查看${theme.title}" aria-pressed="false"><span>${theme.number}</span><small>${theme.label}</small></button>`).join(""); }
-  function setCrystalTheme(index, fromClick) { if (!state.crystalDeck.length) return; index = clamp(index, 0, state.crystalDeck.length - 1); if (index === state.crystalIndex && !fromClick) return; state.crystalIndex = index; const theme = state.crystalDeck[index]; const sequence = String(index + 1).padStart(2, "0"); const fields = { "#crystal-number": `${sequence} / 06`, "#crystal-code": theme.code, "#crystal-title": theme.title, "#crystal-formula": theme.formula, "#crystal-signal": theme.signal, "#crystal-description": theme.description, "#crystal-face": `FACE ${sequence} / 06`, "#crystal-depth": `FACETS / 14 · ${(index / 5).toFixed(2)}`, "#crystal-phase": `SHAPE / ${theme.shape.toUpperCase()}` }; Object.entries(fields).forEach(([selector, value]) => { const node = $(selector); if (node) node.textContent = value; }); const prism = $(".crystal-prism"); if (prism) { prism.dataset.crystalShape = theme.shape; prism.style.setProperty("--crystal-rgb", theme.color.join(",")); } $$("#crystal-theme-rail [data-crystal-index]").forEach((item, itemIndex) => { const active = itemIndex === index; item.classList.toggle("is-active", active); item.setAttribute("aria-pressed", String(active)); if (active) item.setAttribute("aria-current", "true"); else item.removeAttribute("aria-current"); }); if (fromClick) { const announcement = $("#crystal-draw-announcement"); if (announcement) announcement.textContent = `已切換到${theme.title}，公式 ${theme.formula}`; } state.crystalTopicDirty = true; requestRender(); }
+  function setCrystalTheme(index, fromClick) {
+    if (!state.crystalDeck.length) return;
+    index = clamp(index, 0, state.crystalDeck.length - 1);
+    if (index === state.crystalIndex && !fromClick) return;
+    state.crystalIndex = index;
+    const theme = state.crystalDeck[index];
+    const sequence = String(index + 1).padStart(2, "0");
+    const fields = {
+      "#crystal-number": `${sequence} / 06`,
+      "#crystal-code": theme.code,
+      "#crystal-title": theme.title,
+      "#crystal-formula": theme.formula,
+      "#crystal-signal": theme.signal,
+      "#crystal-description": theme.description,
+      "#crystal-face": `FACE ${sequence} / 06`,
+      "#crystal-depth": `FACETS / 14 · ${(index / 5).toFixed(2)}`,
+      "#crystal-phase": `SHAPE / ${theme.shape.toUpperCase()}`,
+    };
+    Object.entries(fields).forEach(([selector, value]) => {
+      const node = $(selector);
+      if (node) node.textContent = value;
+    });
+
+    const prism = $(".crystal-prism");
+    const passage = $("#crystal-passage");
+    if (prism) {
+      prism.dataset.crystalShape = theme.shape;
+      prism.dataset.topicState = "sealed";
+      prism.style.setProperty("--crystal-rgb", theme.color.join(","));
+      applyCrystalFacetPreset(prism, theme.shape);
+    }
+    if (passage) {
+      passage.style.setProperty("--crystal-rgb", theme.color.join(","));
+      if (document.body.classList.contains("is-crystal-archive")) {
+        document.documentElement.style.setProperty("--scene-rgb", theme.color.join(","));
+      }
+    }
+
+    $$("#crystal-theme-rail [data-crystal-index]").forEach((item, itemIndex) => {
+      const active = itemIndex === index;
+      item.classList.toggle("is-active", active);
+      item.setAttribute("aria-pressed", String(active));
+      if (active) item.setAttribute("aria-current", "true");
+      else item.removeAttribute("aria-current");
+    });
+
+    if (fromClick) {
+      const announcement = $("#crystal-draw-announcement");
+      if (announcement) announcement.textContent = `已切換到${theme.title}，公式 ${theme.formula}`;
+    }
+    state.crystalTopicDirty = true;
+    requestRender();
+  }
   function updateCrystalFromScroll() { const section = $("#crystal-passage"); if (!section || !state.crystalDeck.length) return; const rect = section.getBoundingClientRect(); const travel = Math.max(1, section.offsetHeight - innerHeight); const progress = clamp(-rect.top / travel, 0, .9999); setCrystalTheme(Math.min(5, Math.floor(progress * 6)), false); }
   function drawCrystalField(context, width, height, time, theme) { clearField(context, width, height, theme?.color || [100, 210, 245]); const color = theme?.color || [100, 210, 245]; context.save(); context.globalCompositeOperation = "screen"; for (let i = 0; i < 22; i += 1) { const phase = i * 2.399 + time * .00006; const orbit = Math.min(width, height) * (.16 + (i % 7) * .034); const x = width * .56 + Math.cos(phase * (1 + (i % 3) * .07)) * orbit * (1.5 + (i % 4) * .12); const y = height * .44 + Math.sin(phase * .83) * orbit; const size = 1.3 + (i % 5) * .8; context.fillStyle = `rgba(${color.join(",")}, ${.045 + (i % 4) * .02})`; context.beginPath(); context.moveTo(x, y - size * 3); context.lineTo(x + size * 1.8, y + size); context.lineTo(x, y + size * 3.4); context.lineTo(x - size * 1.2, y + size * .8); context.closePath(); context.fill(); } context.restore(); }
 
