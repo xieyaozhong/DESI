@@ -100,13 +100,13 @@
     [0, 31],
   ];
   const CRYSTAL_INNER = [
-    [24, 14],
-    [70, 13],
-    [87, 38],
-    [76, 73],
-    [53, 87],
-    [19, 69],
-    [12, 34],
+    [24, 9],
+    [73, 11],
+    [92, 38],
+    [78, 79],
+    [54, 93],
+    [15, 73],
+    [7, 32],
   ];
   function polygonCentroid(points) {
     let crossSum = 0;
@@ -203,9 +203,8 @@
         opacity: 0;
         contain: layout;
         overflow: visible;
-        perspective: 900px;
-        transition: opacity 210ms ease;
-        filter: drop-shadow(0 22px 34px rgba(0, 0, 0, .34));
+        perspective: 1500px;
+        transition: opacity 120ms ease;
         transform-style: preserve-3d;
       }
 
@@ -252,7 +251,7 @@
         transform: translate3d(
           var(--assembly-depth-x, 15px),
           var(--assembly-depth-y, 20px),
-          -28px
+          var(--assembly-depth-z, -38px)
         );
       }
 
@@ -331,6 +330,7 @@
         .crystal-card-shell {
           --assembly-depth-x: 9px;
           --assembly-depth-y: 12px;
+          --assembly-depth-z: -28px;
         }
 
         .crystal-fragment__face {
@@ -864,22 +864,18 @@
       return { delay, fragment, poses, spec };
     });
     const assemblyDuration = profile.duration + maxDelay;
-    const prismDuration = assemblyDuration + 120;
-    const revealOffset = Math.min(
-      0.92,
-      Math.max(
-        0.78,
-        (maxDelay + profile.duration * 0.94) / prismDuration,
-      ),
-    );
+    const lockHold = 60;
+    const handoffDuration = 125;
+    const prismDuration = assemblyDuration + lockHold + handoffDuration;
+    const revealOffset = (assemblyDuration + lockHold) / prismDuration;
     const prismFrames = initial
       ? [
           { opacity: 0, transform: profile.prismStart, offset: 0 },
           { opacity: 0, transform: profile.prismStart, offset: revealOffset },
           {
-            opacity: 0.2,
+            opacity: 0.46,
             transform: "translateZ(0) scale(.985)",
-            offset: Math.min(0.96, revealOffset + 0.07),
+            offset: revealOffset + (1 - revealOffset) * 0.56,
           },
           { opacity: 1, transform: restingPrism, offset: 1 },
         ]
@@ -887,9 +883,9 @@
           { opacity: 0, transform: profile.prismStart, offset: 0 },
           { opacity: 0, transform: profile.prismStart, offset: revealOffset },
           {
-            opacity: 0.2,
+            opacity: 0.46,
             transform: "translateZ(0) scale(.985)",
-            offset: Math.min(0.96, revealOffset + 0.07),
+            offset: revealOffset + (1 - revealOffset) * 0.56,
           },
           { opacity: 1, transform: restingPrism, offset: 1 },
         ];
@@ -901,25 +897,41 @@
     });
     activeAnimations.push(prismAnimation);
 
+    if (layer?.animate) {
+      const layerAnimation = layer.animate(
+        [
+          { opacity: 1, offset: 0 },
+          { opacity: 1, offset: revealOffset },
+          { opacity: 0, offset: 1 },
+        ],
+        { duration: prismDuration, easing: "linear", fill: "both" },
+      );
+      activeAnimations.push(layerAnimation);
+    }
+
     fragmentRuns.forEach(({ delay, fragment, poses, spec }) => {
-      const restitution = spec.kind === "core" ? 0.24 : 0.16;
+      const nearDistance = Math.hypot(poses.near.x, poses.near.y) || 1;
+      const unitX = poses.near.x / nearDistance;
+      const unitY = poses.near.y / nearDistance;
+      const compressionDistance = spec.kind === "core" ? 2.3 : 1.5;
+      const reboundDistance = spec.kind === "core" ? 5.5 : 3.5;
       const impact = {
-        x: -poses.near.x * restitution,
-        y: -poses.near.y * restitution,
-        z: spec.kind === "core" ? -2.4 : -3.4,
-        rotateX: -poses.near.rotateX * 0.22,
-        rotateY: -poses.near.rotateY * 0.22,
-        rotation: -poses.near.rotation * 0.16,
-        scale: 1 - restitution * 0.1,
+        x: -unitX * compressionDistance,
+        y: -unitY * compressionDistance,
+        z: spec.kind === "core" ? -5 : -3,
+        rotateX: -poses.near.rotateX * 0.08,
+        rotateY: -poses.near.rotateY * 0.08,
+        rotation: -poses.near.rotation * 0.06,
+        scale: spec.kind === "core" ? 0.986 : 0.992,
       };
       const rebound = {
-        x: poses.near.x * restitution * 0.32,
-        y: poses.near.y * restitution * 0.32,
-        z: 1.5,
-        rotateX: poses.near.rotateX * 0.08,
-        rotateY: poses.near.rotateY * 0.08,
-        rotation: poses.near.rotation * 0.05,
-        scale: 1.008,
+        x: unitX * reboundDistance,
+        y: unitY * reboundDistance,
+        z: spec.kind === "core" ? 8 : 5,
+        rotateX: poses.near.rotateX * 0.12,
+        rotateY: poses.near.rotateY * 0.12,
+        rotation: poses.near.rotation * 0.1,
+        scale: spec.kind === "core" ? 1.009 : 1.006,
       };
       const frames = [
         {
@@ -943,20 +955,31 @@
         {
           opacity: 1,
           transform: poseTransform(poses.near),
-          easing: "cubic-bezier(.2,.9,.24,1)",
-          offset: 0.82,
+          easing: "cubic-bezier(.5,.02,.78,.32)",
+          offset: 0.78,
+        },
+        {
+          opacity: 1,
+          transform: poseTransform(finalPose()),
+          easing: "cubic-bezier(.2,.72,.3,1)",
+          offset: 0.86,
         },
         {
           opacity: 1,
           transform: poseTransform(impact),
-          easing: "cubic-bezier(.2,.72,.3,1)",
+          easing: "cubic-bezier(.16,.84,.28,1)",
           offset: 0.9,
         },
         {
           opacity: 1,
           transform: poseTransform(rebound),
-          easing: "ease-out",
-          offset: 0.96,
+          easing: "cubic-bezier(.22,.72,.2,1)",
+          offset: 0.95,
+        },
+        {
+          opacity: 1,
+          transform: poseTransform(finalPose()),
+          offset: 0.985,
         },
         {
           opacity: 1,
@@ -986,12 +1009,15 @@
       prism.style.removeProperty("transform");
       initialAssemblyPlayed = true;
       lastAssembledShape = shape;
+      shell.dispatchEvent(new CustomEvent("crystal:assembled", {
+        detail: { shape, profile: profile.id },
+      }));
       cleanupTimer = window.setTimeout(() => {
         if (run !== generation) return;
         cleanupTimer = 0;
         cancelAnimations();
         hideFragments();
-      }, 230);
+      }, 60);
     }, prismDuration + 20);
   }
 

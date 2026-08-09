@@ -1,0 +1,18 @@
+{
+  "name": "DESI — 水光數域",
+  "short_name": "DESI",
+  "description": "十種即時生成的數學世界，在立體水晶中組合、發光。",
+  "lang": "zh-Hant",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#020a12",
+  "theme_color": "#020a12",
+  "icons": [
+    {
+      "src": "./favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

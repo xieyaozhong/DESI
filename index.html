@@ -7,16 +7,36 @@
       name="description"
       content="水光數域是一場可互動的數學探索：從波的干涉、李薩如軌道、對數螺旋，到 Mandelbrot 無限邊界。"
     />
+    <meta name="author" content="xieyaozhong" />
+    <meta name="robots" content="index, follow" />
+    <meta name="color-scheme" content="dark" />
     <meta name="theme-color" content="#020a12" />
+    <link rel="canonical" href="https://xieyaozhong.github.io/DESI/" />
     <meta property="og:title" content="DESI — 水光數域" />
     <meta
       property="og:description"
       content="改變一個數字，看波紋如何成為軌道、螺旋與無限。"
     />
     <meta property="og:type" content="website" />
+    <meta property="og:locale" content="zh_TW" />
+    <meta property="og:url" content="https://xieyaozhong.github.io/DESI/" />
+    <meta property="og:image" content="https://xieyaozhong.github.io/DESI/og-preview.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="DESI 水光數域的立體水晶與數學光場" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="DESI — 水光數域" />
+    <meta name="twitter:description" content="十種即時生成的數學世界，在立體水晶中組合、發光。" />
+    <meta name="twitter:image" content="https://xieyaozhong.github.io/DESI/og-preview.png" />
     <title>DESI — 水光數域</title>
-    <link rel="stylesheet" href="./styles.css?v=20260728-crystal-cinema-r11" />
-    <script src="./script.js?v=20260728-crystal-cinema-r11" defer></script>
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="stylesheet" href="./styles.css?v=20260809-portfolio-r14" />
+    <link rel="stylesheet" href="./desi-director-v4.css?v=20260809-portfolio-r14" data-desi-director-v4 />
+    <link rel="stylesheet" href="./desi-director-v6.css?v=20260809-portfolio-r14" data-desi-director-v6 />
+    <link rel="stylesheet" href="./desi-crystal-cinema.css?v=20260809-portfolio-r14" data-desi-crystal-cinema />
+    <link rel="stylesheet" href="./desi-portfolio-polish.css?v=20260809-portfolio-r14" />
+    <script src="./script.js?v=20260809-portfolio-r14" defer></script>
   </head>
   <body>
     <a class="skip-link" href="#main">跳到主要內容</a>
@@ -42,16 +62,27 @@
       </a>
 
       <nav class="chapter-nav" aria-label="探索章節">
-        <a href="#wave"><span>01</span> 波紋</a>
-        <a href="#orbit"><span>02</span> 軌道</a>
-        <a href="#spiral"><span>03</span> 成長</a>
-        <a href="#fractal"><span>04</span> 無限</a>
+        <a href="#crystal-passage"><span>01</span> 水晶</a>
+        <a href="#wave"><span>02</span> 實驗</a>
+        <a href="#modular"><span>03</span> 深層</a>
+        <a href="#system-note"><span>04</span> 製作</a>
       </nav>
 
-      <button id="motion-toggle" class="icon-button motion-toggle" type="button" aria-pressed="false">
-        <span class="motion-icon" aria-hidden="true">Ⅱ</span>
-        <span class="motion-label">暫停動態</span>
-      </button>
+      <div class="header-actions">
+        <a
+          class="source-link"
+          href="https://github.com/xieyaozhong/DESI"
+          target="_blank"
+          rel="noreferrer"
+          aria-label="在 GitHub 查看 DESI 原始碼（另開新分頁）"
+        >
+          <span>SOURCE</span><b aria-hidden="true">↗</b>
+        </a>
+        <button id="motion-toggle" class="icon-button motion-toggle" type="button" aria-pressed="false">
+          <span class="motion-icon" aria-hidden="true">Ⅱ</span>
+          <span class="motion-label">暫停動態</span>
+        </button>
+      </div>
     </header>
 
     <main id="main">
@@ -74,6 +105,11 @@
             從一滴水出發。改變一個數字，<br class="desktop-break" />
             看波紋如何成為軌道、螺旋與無限。
           </p>
+          <ul class="hero-proof" aria-label="作品技術摘要">
+            <li><strong>10</strong><span>GENERATIVE WORLDS</span></li>
+            <li><strong>14</strong><span>PHYSICAL FACETS</span></li>
+            <li><strong>0</strong><span>EXTERNAL IMAGES</span></li>
+          </ul>
           <div class="hero-actions">
             <a id="start-explore" class="button button-primary" href="#crystal-passage">
               <span>開始探索</span>
@@ -115,7 +151,7 @@
           <div class="crystal-archive-head">
             <span aria-hidden="true">CRYSTAL ARCHIVE</span>
             <div class="crystal-draw-controls">
-              <span id="crystal-draw-status">RANDOM DRAW / 06 OF 10</span>
+              <span id="crystal-draw-status">14 FACETS / 06 OF 10</span>
               <button
                 id="crystal-reshuffle"
                 class="crystal-reshuffle"
@@ -154,12 +190,12 @@
           <div id="crystal-theme-rail" class="crystal-theme-rail" aria-hidden="true"></div>
 
           <div class="crystal-depth-readout" aria-hidden="true">
-            <span id="crystal-depth">DEPTH / 0.00</span>
+            <span id="crystal-depth">FACETS / 14</span>
             <span id="crystal-phase">PHASE / ASSEMBLE</span>
           </div>
 
           <div class="crystal-scroll-hint" aria-hidden="true">
-            <span>滑動解讀碎片</span>
+            <span>滑動組合碎晶</span>
             <i></i>
             <small>SCROLL TO DECODE</small>
           </div>
@@ -441,6 +477,30 @@
         </div>
       </section>
 
+      <section id="system-note" class="system-note section-shell" aria-labelledby="system-note-title">
+        <div class="system-note__copy reveal">
+          <p class="eyebrow"><span>11</span> BUILT IN THE BROWSER</p>
+          <h2 id="system-note-title">不是影片。<br /><em>每一道光都正在計算。</em></h2>
+          <p>
+            原生 JavaScript、Canvas 2D 與 WebGL 共同驅動十個互動系統；水晶由十四塊精確切面即時組合，並為鍵盤、觸控與減少動態偏好提供對應體驗。
+          </p>
+          <a
+            class="button button-ghost system-note__source"
+            href="https://github.com/xieyaozhong/DESI"
+            target="_blank"
+            rel="noreferrer"
+          >
+            查看原始碼 <b aria-hidden="true">↗</b>
+          </a>
+        </div>
+        <dl class="system-metrics reveal">
+          <div><dt>10</dt><dd>GENERATIVE<br />SYSTEMS</dd></div>
+          <div><dt>14</dt><dd>EXACT<br />FACETS</dd></div>
+          <div><dt>2D + 3D</dt><dd>CANVAS<br />PIPELINE</dd></div>
+          <div><dt>0</dt><dd>EXTERNAL<br />IMAGES</dd></div>
+        </dl>
+      </section>
+
       <section class="closing section-shell" aria-labelledby="closing-title">
         <div class="closing-rings" aria-hidden="true">
           <i></i><i></i><i></i><i></i>
@@ -464,8 +524,11 @@
 
     <footer class="site-footer">
       <p><strong>DESI</strong> / DESIGN × SCIENCE × INFINITY</p>
-      <p>以 HTML Canvas 即時生成 · 無外部影像素材</p>
-      <a href="#top">BACK TO ORIGIN ↑</a>
+      <p data-footer-note>十個主題皆以 HTML Canvas 即時生成 · 無外部影像素材</p>
+      <nav aria-label="作品連結">
+        <a href="https://github.com/xieyaozhong/DESI" target="_blank" rel="noreferrer">SOURCE ↗</a>
+        <a href="#top">BACK TO ORIGIN ↑</a>
+      </nav>
     </footer>
   </body>
 </html>

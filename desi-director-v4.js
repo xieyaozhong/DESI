@@ -21,6 +21,7 @@
     "EMERGENCE",
     "PRIME FIELD",
     "POLAR GARDEN",
+    "CRAFT / BUILT IN THE BROWSER",
     "FINAL FRAME",
   ];
 
@@ -359,7 +360,7 @@
   function bootstrapCover() {
     const style = document.createElement("style");
     style.id = "desi-v4-bootstrap-style";
-    style.textContent = `html.desi-v4-booting{background:#020304!important}html.desi-v4-booting body{visibility:hidden!important}.desi-cinematic-loader,.desi-v2-loader,.desi-v3-loader{display:none!important}`;
+    style.textContent = `html.desi-v4-booting{background:#020304!important}.desi-cinematic-loader,.desi-v2-loader,.desi-v3-loader{display:none!important}`;
     document.head.appendChild(style);
     document.documentElement.classList.add("desi-v4-booting");
   }
@@ -371,7 +372,7 @@
       const link = existing || document.createElement("link");
       if (!existing) {
         link.rel = "stylesheet";
-        link.href = "./desi-director-v4.css?v=20260728-director-v4";
+        link.href = "./desi-director-v4.css?v=20260809-portfolio-r14";
         link.dataset.desiDirectorV4 = "true";
         document.head.appendChild(link);
       }
@@ -535,7 +536,7 @@
     const phase = $(".desi-v4-loader-phase", loader);
     const started = performance.now();
     let shown = 0;
-    const duration = webglReady ? 2100 : 1350;
+    const duration = webglReady ? 420 : 260;
 
     const tick = (now) => {
       const raw = clamp((now - started) / duration);
@@ -552,8 +553,8 @@
         loader.classList.add("is-opening");
         document.body.classList.add("desi-v4-ready");
         state.ready = true;
-      }, 180);
-      setTimeout(() => loader.remove(), 1700);
+      }, 30);
+      setTimeout(() => loader.remove(), 900);
     };
     requestAnimationFrame(tick);
   }
@@ -801,23 +802,29 @@
 
   async function init() {
     bootstrapCover();
-    await addStylesheet();
-    document.body.classList.add("desi-director-v4");
-    createChrome();
-    const webglReady = createCanvas();
-    registerSections();
-    observeDynamicSections();
-    syncThemeColor();
-    installInput();
-    createLoader(webglReady);
-    state.scene = state.sceneTarget = 0;
-    state.suspended = false;
-    requestRender();
-    document.documentElement.classList.remove("desi-v4-booting");
-    document.body.style.visibility = "";
-    $("#desi-v4-bootstrap-style")?.remove();
-    addEventListener("pagehide", cleanup);
-    addEventListener("pageshow", resume);
+    try {
+      await addStylesheet();
+      document.body.classList.add("desi-director-v4");
+      createChrome();
+      const webglReady = createCanvas();
+      registerSections();
+      observeDynamicSections();
+      syncThemeColor();
+      installInput();
+      createLoader(webglReady);
+      state.scene = state.sceneTarget = 0;
+      state.suspended = false;
+      requestRender();
+      addEventListener("pagehide", cleanup);
+      addEventListener("pageshow", resume);
+    } catch (error) {
+      console.error("DESI cinematic director failed to initialize:", error);
+      document.body.classList.add("desi-v4-no-webgl", "desi-v4-ready");
+    } finally {
+      document.documentElement.classList.remove("desi-v4-booting");
+      document.body.style.visibility = "";
+      $("#desi-v4-bootstrap-style")?.remove();
+    }
   }
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => void init(), { once: true });

@@ -21,6 +21,7 @@
     ["cellular", ["EMERGENCE", "CELLULAR WORLD"]],
     ["ulam", ["PRIME", "NUMBER CONSTELLATION"]],
     ["rose", ["POLAR", "TRIGONOMETRIC GARDEN"]],
+    ["system-note", ["CRAFT", "BUILT IN THE BROWSER"]],
     ["closing", ["FINAL FRAME", "THE RULE CONTINUES"]],
   ]);
 
@@ -51,7 +52,7 @@
       const link = existing || document.createElement("link");
       if (!existing) {
         link.rel = "stylesheet";
-        link.href = "./desi-director-v6.css?v=20260728-director-v6";
+        link.href = "./desi-director-v6.css?v=20260809-portfolio-r14";
         link.dataset.desiDirectorV6 = "true";
         document.head.appendChild(link);
       }

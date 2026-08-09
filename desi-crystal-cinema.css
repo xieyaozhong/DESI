@@ -60,7 +60,7 @@ body.desi-v6-cinema #crystal-canvas {
 
 body.desi-v6-cinema #crystal-card-shell {
   --crystal-face-outline: polygon(23% 0, 78% 7%, 100% 38%, 83% 88%, 54% 100%, 11% 78%, 0 31%);
-  --crystal-topic-face: polygon(24% 14%, 70% 13%, 87% 38%, 76% 73%, 53% 87%, 19% 69%, 12% 34%);
+  --crystal-topic-face: polygon(24% 9%, 73% 11%, 92% 38%, 78% 79%, 54% 93%, 15% 73%, 7% 32%);
   --crystal-topic-depth: 24px;
   top: 45%;
   left: 57%;
@@ -125,15 +125,15 @@ body.desi-v6-cinema #crystal-card-shell .crystal-prism[data-crystal-shape]
 }
 
 body.desi-v6-cinema #crystal-card-shell .crystal-shard-facet-left {
-  clip-path: polygon(23% 0, 24% 14%, 12% 34%, 19% 69%, 11% 78%, 0 31%);
+  clip-path: polygon(23% 0, 24% 9%, 7% 32%, 15% 73%, 11% 78%, 0 31%);
 }
 
 body.desi-v6-cinema #crystal-card-shell .crystal-shard-facet-right {
-  clip-path: polygon(78% 7%, 100% 38%, 83% 88%, 76% 73%, 87% 38%, 70% 13%);
+  clip-path: polygon(78% 7%, 100% 38%, 83% 88%, 78% 79%, 92% 38%, 73% 11%);
 }
 
 body.desi-v6-cinema #crystal-card-shell .crystal-shard-facet-bottom {
-  clip-path: polygon(19% 69%, 53% 87%, 76% 73%, 83% 88%, 54% 100%, 11% 78%);
+  clip-path: polygon(15% 73%, 54% 93%, 78% 79%, 83% 88%, 54% 100%, 11% 78%);
 }
 
 body.desi-v6-cinema #crystal-card-shell .crystal-prism[data-crystal-shape]

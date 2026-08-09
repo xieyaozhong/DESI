@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">DESI — 水光數域</title>
+  <desc id="desc">深色水光背景中的立體水晶，中央投映數學波紋。</desc>
+  <defs>
+    <radialGradient id="bg" cx="68%" cy="43%" r="76%">
+      <stop offset="0" stop-color="#123343"/>
+      <stop offset=".42" stop-color="#061722"/>
+      <stop offset="1" stop-color="#020609"/>
+    </radialGradient>
+    <linearGradient id="rim" x1="640" y1="96" x2="1048" y2="548" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#efffff" stop-opacity=".72"/>
+      <stop offset=".27" stop-color="#91f6e6" stop-opacity=".34"/>
+      <stop offset=".58" stop-color="#806bb8" stop-opacity=".48"/>
+      <stop offset="1" stop-color="#07121b" stop-opacity=".96"/>
+    </linearGradient>
+    <radialGradient id="face" cx="62%" cy="37%" r="74%">
+      <stop stop-color="#20495a"/>
+      <stop offset=".52" stop-color="#091e2b"/>
+      <stop offset="1" stop-color="#030a10"/>
+    </radialGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="12"/>
+    </filter>
+    <clipPath id="inner">
+      <polygon points="737,157 931,165 1004,267 949,425 838,480 683,410 651,247"/>
+    </clipPath>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <path d="M0 505C246 443 392 513 611 464s379-14 589-91v257H0Z" fill="#0b2b36" fill-opacity=".24"/>
+  <g opacity=".2" stroke="#9ae9ee" stroke-width="1">
+    <path d="M0 504H1200"/>
+    <path d="M0 514H1200" opacity=".25"/>
+    <path d="M0 524H1200" opacity=".12"/>
+  </g>
+  <text x="72" y="86" fill="#dff8f6" font-family="Arial, sans-serif" font-size="19" font-weight="700" letter-spacing="8">DESI</text>
+  <text x="72" y="112" fill="#8eabb1" font-family="monospace" font-size="10" letter-spacing="3">MATHEMATICAL EXPEDITION</text>
+  <text x="72" y="294" fill="#f0f8f8" font-family="Noto Serif TC, serif" font-size="96" font-weight="400" letter-spacing="-6">數學，</text>
+  <text x="72" y="397" fill="#f0f8f8" font-family="Noto Serif TC, serif" font-size="96" font-weight="400" letter-spacing="-6">也會發光</text>
+  <text x="76" y="458" fill="#a9c5ca" font-family="Noto Sans TC, sans-serif" font-size="20" letter-spacing="3">10 GENERATIVE WORLDS  /  14 EXACT FACETS</text>
+  <polygon points="733,102 959,130 1067,258 997,489 841,552 648,457 607,222" fill="#8fe7ef" fill-opacity=".12" filter="url(#glow)"/>
+  <polygon points="733,102 959,130 1067,258 997,489 841,552 648,457 607,222" fill="url(#rim)" stroke="#dffefd" stroke-opacity=".5" stroke-width="2"/>
+  <polygon points="737,157 931,165 1004,267 949,425 838,480 683,410 651,247" fill="url(#face)" stroke="#c9fbf6" stroke-opacity=".42" stroke-width="2"/>
+  <g clip-path="url(#inner)" fill="none" stroke="#78ffe6" stroke-opacity=".68" stroke-width="2">
+    <circle cx="760" cy="315" r="22"/>
+    <circle cx="760" cy="315" r="48"/>
+    <circle cx="760" cy="315" r="74"/>
+    <circle cx="760" cy="315" r="100"/>
+    <circle cx="902" cy="315" r="22"/>
+    <circle cx="902" cy="315" r="48"/>
+    <circle cx="902" cy="315" r="74"/>
+    <circle cx="902" cy="315" r="100"/>
+  </g>
+  <g fill="none" stroke="#f4ffff" stroke-opacity=".3" stroke-width="1.5">
+    <path d="M733 102 737 157 651 247 683 410 648 457"/>
+    <path d="M959 130 931 165 1004 267 949 425 997 489"/>
+    <path d="M683 410 838 480 949 425"/>
+  </g>
+  <text x="1090" y="584" text-anchor="end" fill="#7e9ea5" font-family="monospace" font-size="11" letter-spacing="3">DESIGN × SCIENCE × INFINITY</text>
+</svg>

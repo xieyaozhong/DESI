@@ -7,6 +7,8 @@
   const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
   const lerp = (a, b, t) => a + (b - a) * t;
   const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const compactViewport = window.matchMedia("(max-width: 760px)");
+  const animatedCrystalThemes = new Set(["wave", "orbit", "spiral", "modular", "fourier", "rose"]);
 
   const state = {
     paused: prefersReducedMotion.matches,
@@ -16,6 +18,10 @@
     scenes: new Map(),
     crystalDeck: [],
     crystalIndex: -1,
+    crystalTopicDirty: true,
+    lastCrystalFrame: -Infinity,
+    raf: 0,
+    renderTimer: 0,
   };
 
   const themes = [
@@ -123,10 +129,11 @@
     if ($("#modular")) return;
     const closing = $(".closing");
     if (!closing) return;
+    const insertBefore = $("#system-note") || closing;
     const divider = document.createElement("div");
     divider.className = "desi-world-divider section-shell reveal";
     divider.innerHTML = `<p>ARCHIVE UNSEALED / SIX NEW FIELDS</p><h2>剩下的六枚水晶，<br /><em>現在也能被操作。</em></h2>`;
-    closing.before(divider);
+    insertBefore.before(divider);
     const specs = [
       { theme: themeById.get("modular"), heading: "圓周上的乘法，<br />會拉出看不見的曲線", intro: "把圓周分成 N 個點，再把第 k 點連到 mk mod N。線仍然是直的，群體卻會形成拋物線、心形與渦旋般的包絡。", formula: "<span>j = mk mod N</span><small>k = 0, 1, …, N − 1</small>", challenge: "把乘數從 2 慢慢調到 3，觀察心形如何轉成多瓣結構。", initialResult: "乘數 2 常形成心形包絡；增加乘數會提高纏繞與瓣數。", aria: "模乘圓周連線動畫，可調整圓周點數與乘數", controls: [{ id: "modular-points", label: "圓周點數", small: "POINTS N", min: 60, max: 360, step: 10, value: 180, valueLabel: "180" }, { id: "modular-multiplier", label: "乘數", small: "MULTIPLIER m", min: 100, max: 800, step: 5, value: 200, valueLabel: "2.00" }] },
       { theme: themeById.get("fourier"), heading: "複雜的輪廓，<br />其實是一群圓在合奏", intro: "傅立葉觀點把週期訊號拆成不同頻率的正弦波。旋轉向量依序首尾相接，最後一個端點便能重建波形。", formula: "<span>f(t) = Σ aₙe<sup>inωt</sup></span><small>幅度決定圓半徑，頻率決定轉速</small>", challenge: "把諧波數提高，觀察方波邊緣變得更陡，但仍保留細小振鈴。", initialResult: "諧波越多，重建輪廓越接近目標；不連續處會出現 Gibbs 振盪。", aria: "傅立葉旋轉向量與方波重建動畫", controls: [{ id: "fourier-harmonics", label: "奇次諧波", small: "HARMONICS", min: 1, max: 15, step: 1, value: 7, valueLabel: "7" }, { id: "fourier-speed", label: "演算速度", small: "SPEED", min: 20, max: 160, step: 5, value: 70, valueLabel: "0.70×" }] },
@@ -135,14 +142,14 @@
       { theme: themeById.get("ulam"), heading: "質數看似散落，<br />排成螺旋後卻出現斜線", intro: "把自然數沿方形螺旋排列，再只點亮質數。規律並不會直接告訴我們下一個質數在哪裡，卻會顯露二次多項式留下的長斜線。", formula: "<span>n = 1, 2, 3, …</span><span>點亮 n ∈ ℙ</span>", challenge: "提高數字上限，觀察短斜線是否逐漸連成更明顯的質數星帶。", initialResult: "斜線來自某些二次多項式在連續整數上產生較多質數。", aria: "Ulam 質數螺旋星圖", controls: [{ id: "ulam-limit", label: "數字上限", small: "LIMIT", min: 225, max: 6561, step: 112, value: 2025, valueLabel: "2025" }, { id: "ulam-size", label: "星點大小", small: "POINT SIZE", min: 50, max: 180, step: 5, value: 100, valueLabel: "1.00×" }] },
       { theme: themeById.get("rose"), heading: "半徑反覆呼吸，<br />一條線便開成花園", intro: "極座標曲線用角度決定方向、用函數值決定半徑。當半徑依正弦規律振盪，週期與正負號會共同決定花瓣數與旋轉方向。", formula: "<span>r(θ) = cos(kθ + φ)</span><small>k 為整數時形成封閉玫瑰線</small>", challenge: "比較奇數與偶數 k：奇數通常有 k 瓣，偶數通常有 2k 瓣。", initialResult: "k=7 形成七瓣玫瑰；相位 φ 會旋轉整朵花而不改變花瓣數。", aria: "可調花瓣數與相位的極座標玫瑰曲線", controls: [{ id: "rose-k", label: "頻率", small: "PETAL K", min: 1, max: 12, step: 1, value: 7, valueLabel: "7" }, { id: "rose-phase", label: "相位", small: "PHASE φ", min: 0, max: 360, step: 1, value: 0, valueLabel: "0°" }, { id: "rose-bloom", label: "呼吸幅度", small: "BLOOM", min: 70, max: 140, step: 1, value: 100, valueLabel: "1.00×" }] },
     ];
-    specs.forEach((spec) => closing.insertAdjacentHTML("beforebegin", chapterMarkup(spec.theme, spec)));
+    specs.forEach((spec) => insertBefore.insertAdjacentHTML("beforebegin", chapterMarkup(spec.theme, spec)));
     const closingEm = $(".closing h2 em"); if (closingEm) closingEm.textContent = "出現的，是十個彼此不同的世界。";
-    const footerNote = $(".site-footer p:nth-child(2)"); if (footerNote) footerNote.textContent = "十個主題皆以 HTML Canvas 即時生成 · 無外部影像素材";
+    const footerNote = $("[data-footer-note]"); if (footerNote) footerNote.textContent = "十個主題皆以 HTML Canvas 即時生成 · 無外部影像素材";
   }
 
   function addNavigation() {
     const nav = $(".chapter-nav"); if (!nav) return;
-    themes.slice(4).forEach((theme) => { if ($(`a[href="#${theme.id}"]`, nav)) return; const link = document.createElement("a"); link.href = `#${theme.id}`; link.innerHTML = `<span>${theme.number}</span> ${theme.label}`; nav.appendChild(link); });
+    nav.dataset.navigationMode = "portfolio";
   }
 
   function addLabCrystals() {
@@ -151,24 +158,40 @@
 
   function safeContext(canvas, options = {}) { return canvas?.getContext("2d", { alpha: true, ...options }) || null; }
   function resizeCanvas(canvas, context, dprLimit = 2) { if (!canvas || !context) return { width: 1, height: 1, dpr: 1 }; const rect = canvas.getBoundingClientRect(); const width = Math.max(1, Math.round(rect.width || canvas.clientWidth || 1)); const height = Math.max(1, Math.round(rect.height || canvas.clientHeight || 1)); const dpr = Math.min(window.devicePixelRatio || 1, dprLimit); const pixelWidth = Math.round(width * dpr); const pixelHeight = Math.round(height * dpr); if (canvas.width !== pixelWidth || canvas.height !== pixelHeight) { canvas.width = pixelWidth; canvas.height = pixelHeight; } context.setTransform(dpr, 0, 0, dpr, 0, 0); return { width, height, dpr }; }
-  function registerScene(id, draw, continuous = true) { const canvas = $(`#${id}-canvas`); const context = safeContext(canvas); if (!canvas || !context) return null; const scene = { id, canvas, context, draw, continuous, dirty: true, metrics: { width: 1, height: 1, dpr: 1 }, data: {}, resize() { this.metrics = resizeCanvas(canvas, context, id === "fractal" ? 1.35 : 1.8); this.dirty = true; } }; scene.resize(); state.scenes.set(id, scene); if ("ResizeObserver" in window) new ResizeObserver(() => scene.resize()).observe(canvas); else window.addEventListener("resize", () => scene.resize(), { passive: true }); return scene; }
-  function markDirty(id) { const scene = state.scenes.get(id); if (scene) scene.dirty = true; }
+  function requestRender(delay = 0) {
+    if (document.hidden) return;
+    if (delay > 0) {
+      if (state.raf || state.renderTimer) return;
+      state.renderTimer = setTimeout(() => {
+        state.renderTimer = 0;
+        requestRender();
+      }, delay);
+      return;
+    }
+    if (state.renderTimer) {
+      clearTimeout(state.renderTimer);
+      state.renderTimer = 0;
+    }
+    if (!state.raf) state.raf = requestAnimationFrame(animate);
+  }
+  function registerScene(id, draw, continuous = true) { const canvas = $(`#${id}-canvas`); const context = safeContext(canvas); if (!canvas || !context) return null; const scene = { id, canvas, context, draw, continuous, dirty: true, lastPaint: -Infinity, frameInterval: id === "ambient" ? 1000 / 30 : compactViewport.matches ? 1000 / 24 : 1000 / 30, metrics: { width: 1, height: 1, dpr: 1 }, data: {}, resize() { this.metrics = resizeCanvas(canvas, context, id === "fractal" ? 1.2 : compactViewport.matches ? 1 : 1.5); this.dirty = true; requestRender(); } }; scene.resize(); state.scenes.set(id, scene); if ("ResizeObserver" in window) new ResizeObserver(() => scene.resize()).observe(canvas); else window.addEventListener("resize", () => scene.resize(), { passive: true }); return scene; }
+  function markDirty(id) { const scene = state.scenes.get(id); if (scene) scene.dirty = true; requestRender(); }
   function bindRange(id, formatter, onInput) { const input = $(`#${id}`); const output = $(`#${id}-out`); if (!input) return; const sync = () => { const value = Number(input.value); if (output) output.textContent = formatter(value); onInput?.(value); const sceneId = id.split("-").slice(0, -1).join("-") || id; markDirty(sceneId); }; input.addEventListener("input", sync, { passive: true }); sync(); }
   function drawGrid(context, width, height, spacing = 42, alpha = 0.08) { context.save(); context.strokeStyle = `rgba(126, 214, 242, ${alpha})`; context.lineWidth = 1; for (let x = 0; x <= width; x += spacing) { context.beginPath(); context.moveTo(x, 0); context.lineTo(x, height); context.stroke(); } for (let y = 0; y <= height; y += spacing) { context.beginPath(); context.moveTo(0, y); context.lineTo(width, y); context.stroke(); } context.restore(); }
   function clearField(context, width, height, color = [80, 210, 245]) { context.clearRect(0, 0, width, height); const gradient = context.createRadialGradient(width * 0.52, height * 0.48, 0, width * 0.52, height * 0.48, Math.max(width, height) * 0.72); gradient.addColorStop(0, `rgba(${color.join(",")}, .09)`); gradient.addColorStop(0.45, "rgba(4, 28, 42, .24)"); gradient.addColorStop(1, "rgba(1, 7, 13, .9)"); context.fillStyle = gradient; context.fillRect(0, 0, width, height); }
 
   function setupMotionControl() {
     const button = $("#motion-toggle"); if (!button) return; const icon = $(".motion-icon", button); const label = $(".motion-label", button);
-    const sync = () => { document.body.classList.toggle("motion-paused", state.paused); button.setAttribute("aria-pressed", String(state.paused)); if (icon) icon.textContent = state.paused ? "▶" : "Ⅱ"; if (label) label.textContent = state.paused ? "繼續動態" : "暫停動態"; state.scenes.forEach((scene) => (scene.dirty = true)); };
+    const sync = () => { document.body.classList.toggle("motion-paused", state.paused); button.setAttribute("aria-pressed", String(state.paused)); if (icon) icon.textContent = state.paused ? "▶" : "Ⅱ"; if (label) label.textContent = state.paused ? "繼續動態" : "暫停動態"; state.scenes.forEach((scene) => (scene.dirty = true)); state.crystalTopicDirty = true; requestRender(); };
     button.addEventListener("click", () => { state.paused = !state.paused; sync(); });
     prefersReducedMotion.addEventListener?.("change", (event) => { if (event.matches) { state.paused = true; sync(); } }); sync();
   }
 
   function setupScrollAndReveal() {
     const progress = $("#scroll-progress"); const sections = $$("main section[id]"); const links = $$(".chapter-nav a"); let scheduled = false;
-    const update = () => { const maxScroll = Math.max(1, document.documentElement.scrollHeight - innerHeight); if (progress) progress.style.transform = `scaleX(${clamp(scrollY / maxScroll, 0, 1)})`; let active = "top"; const line = innerHeight * 0.45; for (const section of sections) { if (section.getBoundingClientRect().top <= line) active = section.id; else break; } links.forEach((link) => { const current = link.hash === `#${active}`; if (current) link.setAttribute("aria-current", "true"); else link.removeAttribute("aria-current"); }); updateCrystalFromScroll(); scheduled = false; };
+    const update = () => { const maxScroll = Math.max(1, document.documentElement.scrollHeight - innerHeight); if (progress) progress.style.transform = `scaleX(${clamp(scrollY / maxScroll, 0, 1)})`; let active = "top"; const line = innerHeight * 0.45; for (const section of sections) { if (section.getBoundingClientRect().top <= line) active = section.id; else break; } const primaryLabs = new Set(["wave", "orbit", "spiral", "fractal"]); const deepLabs = new Set(["modular", "fourier", "lorenz", "cellular", "ulam", "rose"]); const target = active === "crystal-passage" ? "crystal-passage" : primaryLabs.has(active) ? "wave" : deepLabs.has(active) ? "modular" : active === "system-note" ? "system-note" : active; links.forEach((link) => { const current = link.hash === `#${target}`; if (current) link.setAttribute("aria-current", "page"); else link.removeAttribute("aria-current"); }); updateCrystalFromScroll(); scheduled = false; };
     addEventListener("scroll", () => { if (!scheduled) { scheduled = true; requestAnimationFrame(update); } }, { passive: true });
-    const observer = "IntersectionObserver" in window ? new IntersectionObserver((entries) => { entries.forEach((entry) => { if (entry.isIntersecting) state.visible.add(entry.target.id); else state.visible.delete(entry.target.id); }); }, { rootMargin: "-18% 0px -35% 0px", threshold: [0, .05, .25] }) : null;
+    const observer = "IntersectionObserver" in window ? new IntersectionObserver((entries) => { entries.forEach((entry) => { if (entry.isIntersecting) { state.visible.add(entry.target.id); const scene = state.scenes.get(entry.target.id); if (scene) scene.dirty = true; if (entry.target.id === "crystal-passage") state.crystalTopicDirty = true; } else state.visible.delete(entry.target.id); }); requestRender(); }, { rootMargin: "-18% 0px -35% 0px", threshold: [0, .05, .25] }) : null;
     sections.forEach((section) => observer ? observer.observe(section) : state.visible.add(section.id));
     const revealObserver = "IntersectionObserver" in window ? new IntersectionObserver((entries, obs) => { entries.forEach((entry) => { if (!entry.isIntersecting) return; entry.target.classList.add("is-visible"); obs.unobserve(entry.target); }); }, { threshold: .07, rootMargin: "0px 0px -8% 0px" }) : null;
     $$(".reveal").forEach((item) => revealObserver ? revealObserver.observe(item) : item.classList.add("is-visible")); update();
@@ -176,7 +199,7 @@
 
   function setupAmbientScene() {
     const canvas = $("#ambient-canvas"); const context = safeContext(canvas); if (!canvas || !context) return; let metrics = { width: 1, height: 1, dpr: 1 }; let particles = [];
-    const reset = () => { metrics = resizeCanvas(canvas, context, 1.25); const count = clamp(Math.round((metrics.width * metrics.height) / 15000), 36, 110); particles = Array.from({ length: count }, () => ({ x: Math.random(), y: Math.random(), z: .2 + Math.random() * .8, speed: .012 + Math.random() * .045, drift: (Math.random() - .5) * .015, phase: Math.random() * TAU })); };
+    const reset = () => { metrics = resizeCanvas(canvas, context, 1.25); const count = clamp(Math.round((metrics.width * metrics.height) / 15000), 36, 110); particles = Array.from({ length: count }, () => ({ x: Math.random(), y: Math.random(), z: .2 + Math.random() * .8, speed: .012 + Math.random() * .045, drift: (Math.random() - .5) * .015, phase: Math.random() * TAU })); const scene = state.scenes.get("ambient"); if (scene) scene.dirty = true; requestRender(); };
     reset(); if ("ResizeObserver" in window) new ResizeObserver(reset).observe(canvas);
     state.scenes.set("ambient", { id: "ambient", continuous: true, dirty: true, draw(time, delta) { const { width, height } = metrics; context.clearRect(0, 0, width, height); const glow = context.createRadialGradient(width * .6, height * .42, 0, width * .6, height * .42, Math.max(width, height) * .7); glow.addColorStop(0, "rgba(40, 150, 190, .11)"); glow.addColorStop(1, "rgba(1, 7, 12, 0)"); context.fillStyle = glow; context.fillRect(0, 0, width, height); context.save(); context.globalCompositeOperation = "screen"; particles.forEach((particle) => { if (!state.paused) { particle.y += particle.speed * delta / 1000; particle.x += particle.drift * delta / 1000; particle.phase += delta * .001; } if (particle.y > 1.08 || particle.x < -.08 || particle.x > 1.08) { particle.y = -.05; particle.x = Math.random(); } const x = particle.x * width; const y = particle.y * height; const radius = (1 + particle.z * 2.4) * (1 + Math.sin(particle.phase) * .12); const point = context.createRadialGradient(x, y, 0, x, y, radius * 4); point.addColorStop(0, `rgba(205, 250, 255, ${.25 + particle.z * .42})`); point.addColorStop(1, "rgba(70, 190, 230, 0)"); context.fillStyle = point; context.beginPath(); context.arc(x, y, radius * 4, 0, TAU); context.fill(); }); context.restore(); } });
   }
@@ -188,10 +211,10 @@
     if (rail) { rail.setAttribute("aria-hidden", "false"); rail.addEventListener("click", (event) => { const item = event.target.closest("[data-crystal-index]"); if (!item) return; setCrystalTheme(Number(item.dataset.crystalIndex), true); }); }
     button?.addEventListener("click", () => { state.crystalDeck = createDeck(true); state.crystalIndex = -1; setupCrystalPassageRail(); setCrystalTheme(0, false); const announcement = $("#crystal-draw-announcement"); if (announcement) announcement.textContent = `已重新抽取：${state.crystalDeck.map((theme) => theme.title).join("、")}`; });
     setupCrystalPassageRail(); setCrystalTheme(0, false);
-    const canvas = $("#crystal-canvas"); const context = safeContext(canvas); if (canvas && context) { let metrics = resizeCanvas(canvas, context, 1.5); if ("ResizeObserver" in window) new ResizeObserver(() => { metrics = resizeCanvas(canvas, context, 1.5); }).observe(canvas); state.scenes.set("crystal-field", { id: "crystal-field", continuous: true, dirty: true, draw(time) { if (!state.visible.has("crystal-passage")) return; drawCrystalField(context, metrics.width, metrics.height, time, state.crystalDeck[state.crystalIndex] || state.crystalDeck[0]); } }); }
+    const canvas = $("#crystal-canvas"); const context = safeContext(canvas); if (canvas && context) { let metrics = resizeCanvas(canvas, context, 1.5); if ("ResizeObserver" in window) new ResizeObserver(() => { metrics = resizeCanvas(canvas, context, 1.5); const scene = state.scenes.get("crystal-field"); if (scene) scene.dirty = true; state.crystalTopicDirty = true; requestRender(); }).observe(canvas); state.scenes.set("crystal-field", { id: "crystal-field", continuous: true, dirty: true, draw(time) { if (!state.visible.has("crystal-passage")) return; drawCrystalField(context, metrics.width, metrics.height, time, state.crystalDeck[state.crystalIndex] || state.crystalDeck[0]); } }); }
   }
-  function setupCrystalPassageRail() { const rail = $("#crystal-theme-rail"); if (!rail) return; rail.innerHTML = state.crystalDeck.map((theme, index) => `<button type="button" data-crystal-index="${index}" aria-label="查看${theme.title}"><span>${theme.number}</span><small>${theme.label}</small></button>`).join(""); }
-  function setCrystalTheme(index, fromClick) { if (!state.crystalDeck.length) return; index = clamp(index, 0, state.crystalDeck.length - 1); if (index === state.crystalIndex && !fromClick) return; state.crystalIndex = index; const theme = state.crystalDeck[index]; const sequence = String(index + 1).padStart(2, "0"); const fields = { "#crystal-number": `${sequence} / 06`, "#crystal-code": theme.code, "#crystal-title": theme.title, "#crystal-formula": theme.formula, "#crystal-signal": theme.signal, "#crystal-description": theme.description, "#crystal-face": `FACE ${sequence} / 06`, "#crystal-depth": `DEPTH / ${(index / 5).toFixed(2)}`, "#crystal-phase": `SHAPE / ${theme.shape.toUpperCase()}` }; Object.entries(fields).forEach(([selector, value]) => { const node = $(selector); if (node) node.textContent = value; }); const prism = $(".crystal-prism"); if (prism) { prism.dataset.crystalShape = theme.shape; prism.style.setProperty("--crystal-rgb", theme.color.join(",")); } $$("#crystal-theme-rail [data-crystal-index]").forEach((item, itemIndex) => item.classList.toggle("is-active", itemIndex === index)); drawCrystalTopic(theme, state.elapsed); }
+  function setupCrystalPassageRail() { const rail = $("#crystal-theme-rail"); if (!rail) return; rail.setAttribute("role", "group"); rail.setAttribute("aria-label", "已抽取的水晶主題"); rail.innerHTML = state.crystalDeck.map((theme, index) => `<button type="button" data-crystal-index="${index}" aria-label="查看${theme.title}" aria-pressed="false"><span>${theme.number}</span><small>${theme.label}</small></button>`).join(""); }
+  function setCrystalTheme(index, fromClick) { if (!state.crystalDeck.length) return; index = clamp(index, 0, state.crystalDeck.length - 1); if (index === state.crystalIndex && !fromClick) return; state.crystalIndex = index; const theme = state.crystalDeck[index]; const sequence = String(index + 1).padStart(2, "0"); const fields = { "#crystal-number": `${sequence} / 06`, "#crystal-code": theme.code, "#crystal-title": theme.title, "#crystal-formula": theme.formula, "#crystal-signal": theme.signal, "#crystal-description": theme.description, "#crystal-face": `FACE ${sequence} / 06`, "#crystal-depth": `FACETS / 14 · ${(index / 5).toFixed(2)}`, "#crystal-phase": `SHAPE / ${theme.shape.toUpperCase()}` }; Object.entries(fields).forEach(([selector, value]) => { const node = $(selector); if (node) node.textContent = value; }); const prism = $(".crystal-prism"); if (prism) { prism.dataset.crystalShape = theme.shape; prism.style.setProperty("--crystal-rgb", theme.color.join(",")); } $$("#crystal-theme-rail [data-crystal-index]").forEach((item, itemIndex) => { const active = itemIndex === index; item.classList.toggle("is-active", active); item.setAttribute("aria-pressed", String(active)); if (active) item.setAttribute("aria-current", "true"); else item.removeAttribute("aria-current"); }); if (fromClick) { const announcement = $("#crystal-draw-announcement"); if (announcement) announcement.textContent = `已切換到${theme.title}，公式 ${theme.formula}`; } state.crystalTopicDirty = true; requestRender(); }
   function updateCrystalFromScroll() { const section = $("#crystal-passage"); if (!section || !state.crystalDeck.length) return; const rect = section.getBoundingClientRect(); const travel = Math.max(1, section.offsetHeight - innerHeight); const progress = clamp(-rect.top / travel, 0, .9999); setCrystalTheme(Math.min(5, Math.floor(progress * 6)), false); }
   function drawCrystalField(context, width, height, time, theme) { clearField(context, width, height, theme?.color || [100, 210, 245]); const color = theme?.color || [100, 210, 245]; context.save(); context.globalCompositeOperation = "screen"; for (let i = 0; i < 22; i += 1) { const phase = i * 2.399 + time * .00006; const orbit = Math.min(width, height) * (.16 + (i % 7) * .034); const x = width * .56 + Math.cos(phase * (1 + (i % 3) * .07)) * orbit * (1.5 + (i % 4) * .12); const y = height * .44 + Math.sin(phase * .83) * orbit; const size = 1.3 + (i % 5) * .8; context.fillStyle = `rgba(${color.join(",")}, ${.045 + (i % 4) * .02})`; context.beginPath(); context.moveTo(x, y - size * 3); context.lineTo(x + size * 1.8, y + size); context.lineTo(x, y + size * 3.4); context.lineTo(x - size * 1.2, y + size * .8); context.closePath(); context.fill(); } context.restore(); }
 
@@ -200,7 +223,7 @@
     if (theme.id === "wave") { for (let ring = 1; ring <= 11; ring += 1) { context.beginPath(); context.arc(-radius * .35, 0, (ring * radius / 11 + t * 10) % radius, 0, TAU); context.stroke(); context.beginPath(); context.arc(radius * .35, 0, (ring * radius / 11 + t * 10) % radius, 0, TAU); context.stroke(); } }
     else if (theme.id === "orbit") { context.beginPath(); for (let i = 0; i <= 500; i += 1) { const a = i / 500 * TAU; const x = Math.sin(3 * a + t * .15) * radius; const y = Math.sin(2 * a) * radius; i ? context.lineTo(x, y) : context.moveTo(x, y); } context.stroke(); }
     else if (theme.id === "spiral") { context.beginPath(); for (let i = 0; i < 500; i += 1) { const a = i / 500 * TAU * 6 + t * .15; const r = radius * .035 * Math.exp(.075 * a); const x = Math.cos(a) * r; const y = Math.sin(a) * r; i ? context.lineTo(x, y) : context.moveTo(x, y); } context.stroke(); }
-    else if (theme.id === "fractal") { for (let i = 0; i < 2600; i += 1) { let x = 0, y = 0; const cx = -2 + Math.random() * 3; const cy = -1.3 + Math.random() * 2.6; let n = 0; while (x * x + y * y <= 4 && n < 28) { const nx = x * x - y * y + cx; y = 2 * x * y + cy; x = nx; n += 1; } if (n > 17) context.fillRect((cx + .5) * radius * .65, cy * radius * .7, 1.2, 1.2); } }
+    else if (theme.id === "fractal") { const random = mulberry32(0xD351); for (let i = 0; i < 2600; i += 1) { let x = 0, y = 0; const cx = -2 + random() * 3; const cy = -1.3 + random() * 2.6; let n = 0; while (x * x + y * y <= 4 && n < 28) { const nx = x * x - y * y + cx; y = 2 * x * y + cy; x = nx; n += 1; } if (n > 17) context.fillRect((cx + .5) * radius * .65, cy * radius * .7, 1.2, 1.2); } }
     else if (theme.id === "modular") { const points = 110; const m = 2 + Math.sin(t * .2) * .6; context.beginPath(); for (let k = 0; k < points; k += 1) { const a = k / points * TAU; const b = ((k * m) % points) / points * TAU; context.moveTo(Math.cos(a) * radius, Math.sin(a) * radius); context.lineTo(Math.cos(b) * radius, Math.sin(b) * radius); } context.globalAlpha = .24; context.stroke(); }
     else if (theme.id === "fourier") { let x = -radius * .6, y = 0; for (let n = 1; n <= 9; n += 2) { const r = radius * .52 * (4 / (Math.PI * n)); context.beginPath(); context.globalAlpha = .25; context.arc(x, y, r, 0, TAU); context.stroke(); x += Math.cos(n * t) * r; y += Math.sin(n * t) * r; } context.globalAlpha = 1; context.beginPath(); context.arc(x, y, 3, 0, TAU); context.fill(); }
     else if (theme.id === "lorenz") { const points = computeLorenz(10, 28, 8 / 3, 2500, .006); context.beginPath(); points.forEach((point, index) => { const x = point.x / 22 * radius; const y = (point.z - 25) / 28 * radius; index ? context.lineTo(x, y) : context.moveTo(x, y); }); context.stroke(); }
@@ -211,8 +234,59 @@
   }
 
   function setupWave() {
-    const scene = registerScene("wave", (scene, time) => { const { context, metrics } = scene; const { width, height } = metrics; clearField(context, width, height, [120, 255, 230]); const distance = Number($("#wave-distance")?.value || 116); const wavelength = Number($("#wave-length")?.value || 48); const phase = Number($("#wave-phase")?.value || 0) / 100 * Math.PI; const scale = Math.min(1, 560 / Math.max(width, height)); const sampleW = Math.max(90, Math.round(width * scale)); const sampleH = Math.max(70, Math.round(height * scale)); const image = context.createImageData(sampleW, sampleH); const src1 = { x: sampleW / 2 - distance * scale / 2, y: sampleH / 2 }; const src2 = { x: sampleW / 2 + distance * scale / 2, y: sampleH / 2 }; const k = TAU / (wavelength * scale); const omega = time * .002; for (let y = 0; y < sampleH; y += 1) { for (let x = 0; x < sampleW; x += 1) { const d1 = Math.hypot(x - src1.x, y - src1.y); const d2 = Math.hypot(x - src2.x, y - src2.y); const value = (Math.sin(k * d1 - omega) + Math.sin(k * d2 - omega + phase)) * .5; const intensity = Math.round((value * .5 + .5) * 255); const index = (y * sampleW + x) * 4; image.data[index] = 12 + intensity * .22; image.data[index + 1] = 68 + intensity * .65; image.data[index + 2] = 92 + intensity * .72; image.data[index + 3] = 215; } } const temp = document.createElement("canvas"); temp.width = sampleW; temp.height = sampleH; temp.getContext("2d").putImageData(image, 0, 0); context.imageSmoothingEnabled = true; context.globalAlpha = .9; context.drawImage(temp, 0, 0, width, height); context.globalAlpha = 1; [width / 2 - distance / 2, width / 2 + distance / 2].forEach((x, index) => { context.fillStyle = index ? "rgba(255,218,151,.95)" : "rgba(130,255,233,.95)"; context.beginPath(); context.arc(x, height / 2, 4.5, 0, TAU); context.fill(); }); }, true);
-    if (!scene) return; bindRange("wave-distance", String, () => markDirty("wave")); bindRange("wave-length", String, () => markDirty("wave")); bindRange("wave-phase", (v) => `${(v / 100).toFixed(2)}π`, () => markDirty("wave"));
+    const scene = registerScene("wave", (scene, time) => {
+      const { context, metrics, data } = scene;
+      const { width, height } = metrics;
+      clearField(context, width, height, [120, 255, 230]);
+      const distance = Number($("#wave-distance")?.value || 116);
+      const wavelength = Number($("#wave-length")?.value || 48);
+      const phase = Number($("#wave-phase")?.value || 0) / 100 * Math.PI;
+      const scale = Math.min(1, 520 / Math.max(width, height));
+      const sampleW = Math.max(90, Math.round(width * scale));
+      const sampleH = Math.max(70, Math.round(height * scale));
+      if (!data.buffer || data.sampleW !== sampleW || data.sampleH !== sampleH) {
+        data.sampleW = sampleW;
+        data.sampleH = sampleH;
+        data.buffer = document.createElement("canvas");
+        data.buffer.width = sampleW;
+        data.buffer.height = sampleH;
+        data.bufferContext = data.buffer.getContext("2d");
+        data.image = data.bufferContext.createImageData(sampleW, sampleH);
+      }
+      const image = data.image;
+      const src1 = { x: sampleW / 2 - distance * scale / 2, y: sampleH / 2 };
+      const src2 = { x: sampleW / 2 + distance * scale / 2, y: sampleH / 2 };
+      const k = TAU / (wavelength * scale);
+      const omega = time * .002;
+      for (let y = 0; y < sampleH; y += 1) {
+        for (let x = 0; x < sampleW; x += 1) {
+          const d1 = Math.hypot(x - src1.x, y - src1.y);
+          const d2 = Math.hypot(x - src2.x, y - src2.y);
+          const value = (Math.sin(k * d1 - omega) + Math.sin(k * d2 - omega + phase)) * .5;
+          const intensity = Math.round((value * .5 + .5) * 255);
+          const pixel = (y * sampleW + x) * 4;
+          image.data[pixel] = 12 + intensity * .22;
+          image.data[pixel + 1] = 68 + intensity * .65;
+          image.data[pixel + 2] = 92 + intensity * .72;
+          image.data[pixel + 3] = 215;
+        }
+      }
+      data.bufferContext.putImageData(image, 0, 0);
+      context.imageSmoothingEnabled = true;
+      context.globalAlpha = .9;
+      context.drawImage(data.buffer, 0, 0, width, height);
+      context.globalAlpha = 1;
+      [width / 2 - distance / 2, width / 2 + distance / 2].forEach((x, index) => {
+        context.fillStyle = index ? "rgba(255,218,151,.95)" : "rgba(130,255,233,.95)";
+        context.beginPath();
+        context.arc(x, height / 2, 4.5, 0, TAU);
+        context.fill();
+      });
+    }, true);
+    if (!scene) return;
+    bindRange("wave-distance", String, () => markDirty("wave"));
+    bindRange("wave-length", String, () => markDirty("wave"));
+    bindRange("wave-phase", (v) => `${(v / 100).toFixed(2)}π`, () => markDirty("wave"));
   }
 
   function setupOrbit() {
@@ -227,7 +301,7 @@
 
   function setupFractal() {
     const scene = registerScene("fractal", (scene) => { const { context, metrics, data } = scene; const { width, height } = metrics; const iterations = Number($("#fractal-iterations")?.value || 90); const centerX = data.centerX ?? -0.75; const centerY = data.centerY ?? 0; const zoom = data.zoom ?? 1; const sampleW = Math.min(620, Math.max(220, Math.round(width * .72))); const sampleH = Math.max(170, Math.round(sampleW * height / width)); const image = context.createImageData(sampleW, sampleH); const aspect = sampleW / sampleH; const spanY = 2.7 / zoom; const spanX = spanY * aspect; for (let py = 0; py < sampleH; py += 1) { const cy = centerY + (py / sampleH - .5) * spanY; for (let px = 0; px < sampleW; px += 1) { const cx = centerX + (px / sampleW - .5) * spanX; let x = 0, y = 0, n = 0; while (x * x + y * y <= 4 && n < iterations) { const nx = x * x - y * y + cx; y = 2 * x * y + cy; x = nx; n += 1; } const index = (py * sampleW + px) * 4; if (n === iterations) { image.data[index] = 2; image.data[index + 1] = 8; image.data[index + 2] = 17; image.data[index + 3] = 255; } else { const smooth = n + 1 - Math.log2(Math.log2(Math.max(2, x * x + y * y))); const hue = smooth / iterations; image.data[index] = 25 + 130 * Math.pow(hue, .75); image.data[index + 1] = 26 + 90 * Math.sin(hue * Math.PI); image.data[index + 2] = 72 + 180 * (1 - hue); image.data[index + 3] = 255; } } } const temp = document.createElement("canvas"); temp.width = sampleW; temp.height = sampleH; temp.getContext("2d").putImageData(image, 0, 0); context.clearRect(0, 0, width, height); context.imageSmoothingEnabled = true; context.drawImage(temp, 0, 0, width, height); const coords = $("#fractal-coords"); if (coords) coords.textContent = `X ${centerX.toFixed(4)} / Y ${centerY.toFixed(4)} / Z ${zoom.toFixed(2)}`; const status = $("#fractal-status"); if (status) status.textContent = "FIELD READY"; }, false);
-    if (!scene) return; scene.data = { centerX: -0.75, centerY: 0, zoom: 1 }; bindRange("fractal-iterations", String, () => markDirty("fractal")); const canvas = scene.canvas; const zoomAt = (xRatio, yRatio, factor) => { const aspect = scene.metrics.width / scene.metrics.height; const spanY = 2.7 / scene.data.zoom; const spanX = spanY * aspect; scene.data.centerX += (xRatio - .5) * spanX; scene.data.centerY += (yRatio - .5) * spanY; scene.data.zoom *= factor; scene.dirty = true; }; canvas.addEventListener("click", (event) => { const rect = canvas.getBoundingClientRect(); zoomAt((event.clientX - rect.left) / rect.width, (event.clientY - rect.top) / rect.height, 2); }); const actions = { "zoom-in": () => { scene.data.zoom *= 1.6; scene.dirty = true; }, "zoom-out": () => { scene.data.zoom /= 1.6; scene.dirty = true; }, reset: () => { Object.assign(scene.data, { centerX: -0.75, centerY: 0, zoom: 1 }); scene.dirty = true; }, cardioid: () => { Object.assign(scene.data, { centerX: -0.28, centerY: 0, zoom: 2.6 }); scene.dirty = true; }, seahorse: () => { Object.assign(scene.data, { centerX: -0.743643, centerY: 0.131825, zoom: 90 }); scene.dirty = true; } }; $$('[data-fractal]').forEach((button) => button.addEventListener("click", () => actions[button.dataset.fractal]?.())); canvas.addEventListener("keydown", (event) => { const step = .18 / scene.data.zoom; if (event.key === "ArrowLeft") scene.data.centerX -= step; else if (event.key === "ArrowRight") scene.data.centerX += step; else if (event.key === "ArrowUp") scene.data.centerY -= step; else if (event.key === "ArrowDown") scene.data.centerY += step; else if (["+", "="].includes(event.key)) scene.data.zoom *= 1.5; else if (event.key === "-") scene.data.zoom /= 1.5; else if (event.key === "Home") Object.assign(scene.data, { centerX: -0.75, centerY: 0, zoom: 1 }); else return; event.preventDefault(); scene.dirty = true; });
+    if (!scene) return; scene.data = { centerX: -0.75, centerY: 0, zoom: 1 }; bindRange("fractal-iterations", String, () => markDirty("fractal")); const canvas = scene.canvas; const zoomAt = (xRatio, yRatio, factor) => { const aspect = scene.metrics.width / scene.metrics.height; const spanY = 2.7 / scene.data.zoom; const spanX = spanY * aspect; scene.data.centerX += (xRatio - .5) * spanX; scene.data.centerY += (yRatio - .5) * spanY; scene.data.zoom *= factor; scene.dirty = true; }; canvas.addEventListener("click", (event) => { const rect = canvas.getBoundingClientRect(); zoomAt((event.clientX - rect.left) / rect.width, (event.clientY - rect.top) / rect.height, 2); }); const actions = { "zoom-in": () => { scene.data.zoom *= 1.6; scene.dirty = true; }, "zoom-out": () => { scene.data.zoom /= 1.6; scene.dirty = true; }, reset: () => { Object.assign(scene.data, { centerX: -0.75, centerY: 0, zoom: 1 }); scene.dirty = true; }, cardioid: () => { Object.assign(scene.data, { centerX: -0.28, centerY: 0, zoom: 2.6 }); scene.dirty = true; }, seahorse: () => { Object.assign(scene.data, { centerX: -0.743643, centerY: 0.131825, zoom: 90 }); scene.dirty = true; } }; $$('[data-fractal]').forEach((button) => button.addEventListener("click", () => actions[button.dataset.fractal]?.())); canvas.addEventListener("keydown", (event) => { const step = .18 / scene.data.zoom; if (event.key === "ArrowLeft") scene.data.centerX -= step; else if (event.key === "ArrowRight") scene.data.centerX += step; else if (event.key === "ArrowUp") scene.data.centerY -= step; else if (event.key === "ArrowDown") scene.data.centerY += step; else if (["+", "="].includes(event.key)) scene.data.zoom *= 1.5; else if (event.key === "-") scene.data.zoom /= 1.5; else if (event.key === "Home") Object.assign(scene.data, { centerX: -0.75, centerY: 0, zoom: 1 }); else return; event.preventDefault(); scene.dirty = true; requestRender(); });
   }
 
   function setupModular() {
@@ -272,8 +346,93 @@
     $$('[data-share-copy]').forEach((button) => button.addEventListener("click", async () => { const status = $("#share-status"); try { await navigator.clipboard.writeText(location.href); if (status) status.textContent = "探索網址已複製。"; } catch { if (status) status.textContent = "無法自動複製，請從瀏覽器網址列複製。"; } }));
   }
 
-  function animate(now) { const delta = Math.min(50, Math.max(0, now - state.lastFrame)); state.lastFrame = now; if (!state.paused) state.elapsed += delta; state.scenes.forEach((scene, key) => { const visible = key === "ambient" || key === "crystal-field" ? true : state.visible.has(scene.id); if (!visible && key !== "ambient") return; if (scene.continuous && !state.paused || scene.dirty) { if (scene.id === "ambient" || scene.id === "crystal-field") scene.draw(state.elapsed, delta); else scene.draw(scene, state.elapsed, delta); scene.dirty = false; } }); if (state.crystalDeck.length && (!state.paused || state.crystalIndex < 0)) drawCrystalTopic(state.crystalDeck[state.crystalIndex] || state.crystalDeck[0], state.elapsed); requestAnimationFrame(animate); }
+  function sceneIsVisible(scene, key) {
+    if (key === "ambient") return true;
+    if (key === "crystal-field") return state.visible.has("crystal-passage");
+    return state.visible.has(scene.id);
+  }
 
-  function init() { injectEnhancementStyles(); appendRemainingWorlds(); addNavigation(); addLabCrystals(); setupMotionControl(); setupAmbientScene(); setupCrystalPassage(); setupWave(); setupOrbit(); setupSpiral(); setupFractal(); setupModular(); setupFourier(); setupLorenz(); setupCellular(); setupUlam(); setupRose(); setupGlobalActions(); setupScrollAndReveal(); requestAnimationFrame(animate); }
+  function animate(now) {
+    state.raf = 0;
+    const delta = Math.min(50, Math.max(0, now - state.lastFrame));
+    state.lastFrame = now;
+    if (!state.paused) state.elapsed += delta;
+
+    state.scenes.forEach((scene, key) => {
+      const visible = sceneIsVisible(scene, key);
+      if (!visible) return;
+      const frameInterval = scene.frameInterval || (compactViewport.matches ? 1000 / 24 : 1000 / 30);
+      const lastPaint = Number.isFinite(scene.lastPaint) ? scene.lastPaint : -Infinity;
+      const frameDue = now - lastPaint >= frameInterval;
+      if ((scene.continuous && !state.paused && frameDue) || scene.dirty) {
+        if (scene.id === "ambient" || scene.id === "crystal-field") scene.draw(state.elapsed, delta);
+        else scene.draw(scene, state.elapsed, delta);
+        scene.dirty = false;
+        scene.lastPaint = now;
+      }
+    });
+
+    const topicTheme = state.crystalDeck[state.crystalIndex] || state.crystalDeck[0];
+    const topicVisible = state.visible.has("crystal-passage");
+    const topicAnimated = animatedCrystalThemes.has(topicTheme?.id);
+    const topicInterval = compactViewport.matches ? 1000 / 24 : 1000 / 30;
+    const topicDue = now - state.lastCrystalFrame >= topicInterval;
+    if (
+      topicTheme &&
+      topicVisible &&
+      (state.crystalTopicDirty || (!state.paused && topicAnimated && topicDue))
+    ) {
+      drawCrystalTopic(topicTheme, state.elapsed);
+      state.crystalTopicDirty = false;
+      state.lastCrystalFrame = now;
+    }
+
+    const dirtyVisibleScene = [...state.scenes].some(([key, scene]) => scene.dirty && sceneIsVisible(scene, key));
+    const continuousScenes = !state.paused ? [...state.scenes].filter(([key, scene]) => scene.continuous && sceneIsVisible(scene, key)) : [];
+    const continuousTopic = !state.paused && topicVisible && topicAnimated;
+    if (dirtyVisibleScene || (topicVisible && state.crystalTopicDirty)) {
+      requestRender();
+    } else if (continuousScenes.length || continuousTopic) {
+      const nextSceneDelay = continuousScenes.reduce((delay, [, scene]) => {
+        const interval = scene.frameInterval || (compactViewport.matches ? 1000 / 24 : 1000 / 30);
+        return Math.min(delay, Math.max(4, interval - (now - (scene.lastPaint ?? now))));
+      }, Infinity);
+      const nextTopicDelay = continuousTopic ? Math.max(4, topicInterval - (now - state.lastCrystalFrame)) : Infinity;
+      requestRender(Math.min(nextSceneDelay, nextTopicDelay));
+    }
+  }
+
+  function init() {
+    injectEnhancementStyles();
+    appendRemainingWorlds();
+    addNavigation();
+    addLabCrystals();
+    setupMotionControl();
+    setupAmbientScene();
+    setupCrystalPassage();
+    setupWave();
+    setupOrbit();
+    setupSpiral();
+    setupFractal();
+    setupModular();
+    setupFourier();
+    setupLorenz();
+    setupCellular();
+    setupUlam();
+    setupRose();
+    setupGlobalActions();
+    setupScrollAndReveal();
+    document.addEventListener("input", requestRender, { passive: true });
+    document.addEventListener("click", requestRender, { passive: true });
+    addEventListener("resize", requestRender, { passive: true });
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) return;
+      state.lastFrame = performance.now();
+      state.scenes.forEach((scene) => (scene.dirty = true));
+      state.crystalTopicDirty = true;
+      requestRender();
+    });
+    requestRender();
+  }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init, { once: true }); else init();
 })();
