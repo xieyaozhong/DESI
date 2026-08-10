@@ -1,0 +1,719 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Xieyaozhong — Creative developer / generative systems. A standalone portfolio page for DESI." />
+  <meta name="theme-color" content="#0a0a0a" />
+  <title>XIEYAOZHONG — Creative Developer / DESI</title>
+  <style>
+    :root {
+      --bg: #090909;
+      --fg: #f1f1ed;
+      --muted: #8a8a84;
+      --line: rgba(241, 241, 237, .18);
+      --soft-line: rgba(241, 241, 237, .08);
+      --panel: rgba(16, 16, 16, .72);
+      --pad: clamp(18px, 3vw, 48px);
+      --display: clamp(4.6rem, 14vw, 13rem);
+      --h2: clamp(3.2rem, 8vw, 8.6rem);
+      --mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      --sans: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; background: var(--bg); }
+    body {
+      margin: 0;
+      color: var(--fg);
+      background: var(--bg);
+      font-family: var(--sans);
+      overflow-x: hidden;
+      cursor: crosshair;
+    }
+    a { color: inherit; text-decoration: none; }
+    button { color: inherit; font: inherit; }
+    ::selection { background: var(--fg); color: var(--bg); }
+
+    #field {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+      opacity: .72;
+    }
+
+    .noise,
+    .grid {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1;
+    }
+    .grid {
+      background-image:
+        linear-gradient(var(--soft-line) 1px, transparent 1px),
+        linear-gradient(90deg, var(--soft-line) 1px, transparent 1px);
+      background-size: 64px 64px;
+      mask-image: linear-gradient(to bottom, rgba(0,0,0,.75), transparent 92%);
+      opacity: .22;
+    }
+    .noise {
+      opacity: .05;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 160 160' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.86' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.9'/%3E%3C/svg%3E");
+      mix-blend-mode: soft-light;
+    }
+
+    .progress {
+      position: fixed;
+      z-index: 20;
+      top: 0;
+      left: 0;
+      height: 2px;
+      width: 100%;
+      transform-origin: 0 50%;
+      transform: scaleX(0);
+      background: var(--fg);
+    }
+
+    .shell {
+      position: relative;
+      z-index: 2;
+      min-height: 100vh;
+      border-left: 1px solid var(--soft-line);
+      border-right: 1px solid var(--soft-line);
+      margin: 0 clamp(8px, 1.4vw, 22px);
+    }
+
+    .topbar {
+      position: fixed;
+      z-index: 12;
+      top: 0;
+      left: clamp(8px, 1.4vw, 22px);
+      right: clamp(8px, 1.4vw, 22px);
+      height: 66px;
+      padding: 0 var(--pad);
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      border-bottom: 1px solid var(--line);
+      background: rgba(9,9,9,.68);
+      backdrop-filter: blur(16px);
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .topbar .center { color: var(--muted); }
+    .topbar .right { text-align: right; }
+    .topbar button {
+      appearance: none;
+      background: none;
+      border: 0;
+      padding: 8px 0;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    .menu {
+      position: fixed;
+      z-index: 11;
+      inset: 0;
+      background: rgba(9,9,9,.96);
+      display: grid;
+      align-content: center;
+      padding: calc(66px + var(--pad)) var(--pad) var(--pad);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity .35s ease, visibility .35s ease;
+    }
+    .menu.open { opacity: 1; visibility: visible; }
+    .menu-head {
+      position: absolute;
+      top: 92px;
+      left: var(--pad);
+      right: var(--pad);
+      display: flex;
+      justify-content: space-between;
+      font: 10px var(--mono);
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+    .menu nav { border-top: 1px solid var(--line); }
+    .menu a {
+      display: grid;
+      grid-template-columns: 76px 1fr auto;
+      gap: 18px;
+      align-items: baseline;
+      padding: 18px 0 15px;
+      border-bottom: 1px solid var(--line);
+      text-transform: uppercase;
+      transition: padding .25s ease, color .25s ease;
+    }
+    .menu a:hover { padding-left: 14px; color: #fff; }
+    .menu a span,
+    .menu a small { font: 10px var(--mono); color: var(--muted); }
+    .menu a strong { font-size: clamp(2rem, 6vw, 5rem); line-height: .95; font-weight: 520; }
+
+    .section {
+      min-height: 100vh;
+      padding: 120px var(--pad) 70px;
+      border-bottom: 1px solid var(--line);
+      position: relative;
+    }
+    .kicker {
+      margin: 0 0 34px;
+      font: 10px/1.4 var(--mono);
+      letter-spacing: .08em;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+    .kicker span { color: var(--fg); margin-right: 12px; }
+
+    .hero {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 100svh;
+      padding-top: 118px;
+      overflow: hidden;
+    }
+    .hero-meta {
+      display: flex;
+      justify-content: space-between;
+      gap: 24px;
+      font: 10px/1.5 var(--mono);
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .07em;
+    }
+    .hero-title {
+      margin: auto 0 0;
+      padding-top: 8vh;
+      font-size: var(--display);
+      line-height: .73;
+      letter-spacing: -.085em;
+      font-weight: 540;
+      text-transform: uppercase;
+      max-width: 100%;
+    }
+    .hero-title .line { display: block; white-space: nowrap; }
+    .hero-title .outline {
+      color: transparent;
+      -webkit-text-stroke: 1px rgba(241,241,237,.7);
+    }
+    .hero-bottom {
+      margin-top: clamp(44px, 9vh, 130px);
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(260px, .8fr);
+      gap: clamp(34px, 6vw, 100px);
+      align-items: end;
+    }
+    .hero-statement {
+      margin: 0;
+      max-width: 1050px;
+      font-size: clamp(1.5rem, 3.5vw, 3.4rem);
+      letter-spacing: -.045em;
+      line-height: 1.04;
+      font-weight: 450;
+    }
+    .hero-statement em { font-style: normal; color: var(--muted); }
+    .hero-actions {
+      display: grid;
+      gap: 0;
+      border-top: 1px solid var(--line);
+    }
+    .link-row {
+      min-height: 54px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      border-bottom: 1px solid var(--line);
+      font: 10px var(--mono);
+      letter-spacing: .07em;
+      text-transform: uppercase;
+      transition: padding .2s ease, background .2s ease;
+    }
+    .link-row:hover { padding: 0 12px; background: rgba(255,255,255,.04); }
+
+    .section-head {
+      display: grid;
+      grid-template-columns: 100px minmax(0, 1fr) minmax(220px, 340px);
+      gap: 34px;
+      align-items: start;
+      margin-bottom: clamp(80px, 15vh, 180px);
+    }
+    .section-head .index { font: 10px var(--mono); color: var(--muted); }
+    .section-head h2 {
+      margin: 0;
+      font-size: var(--h2);
+      line-height: .83;
+      letter-spacing: -.075em;
+      font-weight: 520;
+      text-transform: uppercase;
+    }
+    .section-head p {
+      margin: .3rem 0 0;
+      font-size: 14px;
+      line-height: 1.6;
+      color: #b8b8b2;
+    }
+
+    .capabilities {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      border-top: 1px solid var(--line);
+    }
+    .capability {
+      min-height: 260px;
+      padding: 28px 24px 34px 0;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .capability:nth-child(odd) { border-right: 1px solid var(--line); padding-right: 34px; }
+    .capability:nth-child(even) { padding-left: 34px; }
+    .capability .n { font: 10px var(--mono); color: var(--muted); }
+    .capability h3 { margin: 56px 0 8px; font-size: clamp(1.9rem, 4vw, 4rem); line-height: .95; letter-spacing: -.055em; font-weight: 500; }
+    .capability p { margin: 0; color: var(--muted); font: 10px/1.5 var(--mono); text-transform: uppercase; letter-spacing: .05em; }
+
+    .work-list { border-top: 1px solid var(--line); }
+    .work {
+      display: grid;
+      grid-template-columns: 85px minmax(0, 1.15fr) minmax(240px, .85fr) 46px;
+      gap: 22px;
+      align-items: center;
+      min-height: clamp(190px, 27vw, 340px);
+      border-bottom: 1px solid var(--line);
+      position: relative;
+      overflow: hidden;
+    }
+    .work::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, rgba(255,255,255,.055), transparent 70%);
+      transform: translateX(-102%);
+      transition: transform .55s cubic-bezier(.2,.7,.2,1);
+    }
+    .work:hover::before { transform: translateX(0); }
+    .work > * { position: relative; z-index: 1; }
+    .work .n { font: 10px var(--mono); color: var(--muted); align-self: start; padding-top: 32px; }
+    .work h3 { margin: 0; font-size: clamp(2.8rem, 6.4vw, 7rem); line-height: .82; letter-spacing: -.07em; font-weight: 510; text-transform: uppercase; }
+    .work .desc { color: #b6b6b0; font-size: 13px; line-height: 1.55; max-width: 48ch; }
+    .work .desc b { display: block; margin-bottom: 10px; font: 10px var(--mono); font-weight: 400; color: var(--fg); letter-spacing: .06em; text-transform: uppercase; }
+    .work .arrow { font-size: 28px; transform: rotate(-10deg); transition: transform .25s ease; }
+    .work:hover .arrow { transform: translate(6px,-6px) rotate(0); }
+
+    .manifesto-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      border-top: 1px solid var(--line);
+    }
+    .manifesto-big {
+      padding: 34px 46px 80px 0;
+      border-right: 1px solid var(--line);
+      font-size: clamp(3rem, 7vw, 8rem);
+      line-height: .86;
+      letter-spacing: -.07em;
+      text-transform: uppercase;
+    }
+    .manifesto-copy { padding: 34px 0 80px 46px; display: grid; align-content: start; gap: 34px; }
+    .manifesto-copy p { margin: 0; max-width: 54ch; font-size: clamp(1rem, 1.5vw, 1.3rem); line-height: 1.6; color: #b7b7b1; }
+    .stack { border-top: 1px solid var(--line); }
+    .stack div { display: flex; justify-content: space-between; gap: 20px; padding: 14px 0; border-bottom: 1px solid var(--line); font: 10px var(--mono); text-transform: uppercase; letter-spacing: .05em; }
+    .stack span:last-child { color: var(--muted); text-align: right; }
+
+    .connect {
+      min-height: 76vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .connect h2 {
+      margin: 0;
+      font-size: clamp(4rem, 11vw, 11rem);
+      line-height: .77;
+      letter-spacing: -.08em;
+      font-weight: 520;
+      text-transform: uppercase;
+    }
+    .connect h2 span { color: transparent; -webkit-text-stroke: 1px rgba(241,241,237,.65); }
+    .connect-links {
+      margin-top: 80px;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      border-top: 1px solid var(--line);
+    }
+    .connect-links a { padding: 24px 0; border-bottom: 1px solid var(--line); font: 10px var(--mono); text-transform: uppercase; letter-spacing: .06em; display: flex; justify-content: space-between; }
+    .connect-links a:nth-child(odd) { padding-right: 28px; border-right: 1px solid var(--line); }
+    .connect-links a:nth-child(even) { padding-left: 28px; }
+
+    footer {
+      position: relative;
+      z-index: 2;
+      min-height: 86px;
+      padding: 28px var(--pad);
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      align-items: flex-end;
+      font: 9px/1.5 var(--mono);
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+    }
+
+    .reveal { opacity: 0; transform: translateY(36px); transition: opacity .8s ease, transform .8s cubic-bezier(.2,.75,.2,1); }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    .cursor {
+      position: fixed;
+      z-index: 30;
+      width: 10px;
+      height: 10px;
+      border: 1px solid rgba(241,241,237,.9);
+      border-radius: 50%;
+      pointer-events: none;
+      transform: translate(-50%,-50%);
+      mix-blend-mode: difference;
+      transition: width .18s ease, height .18s ease, background .18s ease;
+    }
+    .cursor.hot { width: 44px; height: 44px; background: rgba(255,255,255,.16); }
+
+    @media (max-width: 900px) {
+      body { cursor: auto; }
+      .cursor { display: none; }
+      .topbar { grid-template-columns: 1fr 1fr; }
+      .topbar .center { display: none; }
+      .hero-bottom,
+      .section-head,
+      .manifesto-grid { grid-template-columns: 1fr; }
+      .section-head { gap: 22px; }
+      .section-head .index { margin-bottom: 12px; }
+      .capabilities { grid-template-columns: 1fr; }
+      .capability:nth-child(odd), .capability:nth-child(even) { border-right: 0; padding-left: 0; padding-right: 0; }
+      .work { grid-template-columns: 48px 1fr 34px; gap: 12px; padding: 28px 0; }
+      .work .desc { grid-column: 2 / 4; }
+      .manifesto-big { border-right: 0; border-bottom: 1px solid var(--line); padding-right: 0; }
+      .manifesto-copy { padding-left: 0; }
+    }
+    @media (max-width: 600px) {
+      :root { --pad: 18px; }
+      .shell { margin: 0 7px; }
+      .topbar { left: 7px; right: 7px; padding-inline: 18px; }
+      .hero-title { font-size: clamp(4.1rem, 22vw, 7.2rem); line-height: .78; }
+      .hero-title .line { white-space: normal; }
+      .hero-meta { flex-direction: column; gap: 8px; }
+      .section { padding-top: 96px; }
+      .section-head { margin-bottom: 64px; }
+      .work h3 { font-size: clamp(2.5rem, 13vw, 4.8rem); }
+      .connect-links { grid-template-columns: 1fr; }
+      .connect-links a:nth-child(odd), .connect-links a:nth-child(even) { padding-left: 0; padding-right: 0; border-right: 0; }
+      footer { align-items: flex-start; flex-direction: column; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; }
+      #field { opacity: .22; }
+      .reveal { opacity: 1; transform: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="progress" id="progress" aria-hidden="true"></div>
+  <canvas id="field" aria-hidden="true"></canvas>
+  <div class="grid" aria-hidden="true"></div>
+  <div class="noise" aria-hidden="true"></div>
+  <div class="cursor" id="cursor" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <button id="menuToggle" type="button" aria-expanded="false" aria-controls="menu">Menu</button>
+    <div class="center">// DESI PORTFOLIO / GENERATIVE SYSTEMS</div>
+    <div class="right"><a href="../">Back to DESI ↗</a></div>
+  </header>
+
+  <aside class="menu" id="menu" aria-hidden="true">
+    <div class="menu-head"><span>// Navigation</span><span>Xieyaozhong / 2026</span></div>
+    <nav>
+      <a href="#home"><span>//01</span><strong>Home</strong><small>Current ↗</small></a>
+      <a href="#capabilities"><span>//02</span><strong>Capabilities</strong><small>Open ↗</small></a>
+      <a href="#work"><span>//03</span><strong>Systems</strong><small>Open ↗</small></a>
+      <a href="#profile"><span>//04</span><strong>Profile</strong><small>Open ↗</small></a>
+      <a href="#connect"><span>//05</span><strong>Connect</strong><small>Open ↗</small></a>
+    </nav>
+  </aside>
+
+  <main class="shell">
+    <section class="section hero" id="home">
+      <div class="hero-meta">
+        <div>CREATIVE DEVELOPER<br />GENERATIVE SYSTEMS</div>
+        <div>CANVAS / WEBGL / INTERACTION<br />BUILD / TEST / SHIP</div>
+      </div>
+
+      <h1 class="hero-title reveal">
+        <span class="line">XIEYAO</span>
+        <span class="line outline">ZHONG</span>
+      </h1>
+
+      <div class="hero-bottom reveal">
+        <p class="hero-statement">
+          I turn abstract ideas into <em>interactive systems</em> — combining code, motion, mathematical structure and interface design.
+        </p>
+        <div class="hero-actions">
+          <a class="link-row" href="#work"><span>View selected systems</span><b>↘</b></a>
+          <a class="link-row" href="https://github.com/xieyaozhong/DESI" target="_blank" rel="noreferrer"><span>Source / GitHub</span><b>↗</b></a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="capabilities">
+      <p class="kicker reveal"><span>//01</span> Capability / architecture → interface</p>
+      <div class="section-head reveal">
+        <div class="index">POSITION</div>
+        <h2>Technical<br />depth.</h2>
+        <p>從資料、演算法與渲染邏輯開始，到最後一個動態細節與互動回饋，讓作品不只是能運作，而是完整地被體驗。</p>
+      </div>
+      <div class="capabilities reveal">
+        <article class="capability">
+          <span class="n">01 / SYSTEM</span>
+          <div><h3>Architecture<br />to interface</h3><p>FRONT-END SYSTEMS / PRODUCT LOGIC</p></div>
+        </article>
+        <article class="capability">
+          <span class="n">02 / REALTIME</span>
+          <div><h3>Motion<br />as behavior</h3><p>CANVAS / WEBGL / GENERATIVE MOTION</p></div>
+        </article>
+        <article class="capability">
+          <span class="n">03 / MATH</span>
+          <div><h3>Rules<br />become worlds</h3><p>SIMULATION / ITERATION / VISUALIZATION</p></div>
+        </article>
+        <article class="capability">
+          <span class="n">04 / POLISH</span>
+          <div><h3>Details<br />that finish</h3><p>UX / PERFORMANCE / ACCESSIBILITY</p></div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="work">
+      <p class="kicker reveal"><span>//02</span> Selected proof / DESI systems</p>
+      <div class="section-head reveal">
+        <div class="index">SYSTEMS</div>
+        <h2>Ideas,<br />shipped.</h2>
+        <p>DESI 將數學公式變成可操作的視覺空間。以下把整件作品拆成三個核心系統，呈現設計與工程如何彼此咬合。</p>
+      </div>
+
+      <div class="work-list reveal">
+        <a class="work" href="../#crystal-passage">
+          <span class="n">01</span>
+          <h3>Crystal<br />Assembly</h3>
+          <div class="desc"><b>Spatial / Generative interface</b>十四枚碎晶以碰撞、壓縮、回彈與沉降組合成完整水晶，將章節切換變成空間事件。</div>
+          <span class="arrow">↗</span>
+        </a>
+        <a class="work" href="../#wave">
+          <span class="n">02</span>
+          <h3>Ten<br />Worlds</h3>
+          <div class="desc"><b>Math / Canvas / realtime</b>從波動、李薩如曲線、碎形、吸引子到質數星圖，把十種數學規則轉成即時生成的可觀察系統。</div>
+          <span class="arrow">↗</span>
+        </a>
+        <a class="work" href="../#system-note">
+          <span class="n">03</span>
+          <h3>Interaction<br />Director</h3>
+          <div class="desc"><b>Motion / performance / narrative</b>以滾動、視差、可見區繪製與降級策略串起整體敘事，同時兼顧效能與 reduced-motion。</div>
+          <span class="arrow">↗</span>
+        </a>
+      </div>
+    </section>
+
+    <section class="section" id="profile">
+      <p class="kicker reveal"><span>//03</span> Profile / code × form × behavior</p>
+      <div class="section-head reveal">
+        <div class="index">METHOD</div>
+        <h2>Build the<br />behavior.</h2>
+        <p>不是先做一張靜態畫面，再補動畫；而是把「如何移動、如何回應、如何失敗、如何恢復」一起當成設計本體。</p>
+      </div>
+
+      <div class="manifesto-grid reveal">
+        <div class="manifesto-big">A system<br />should feel<br />inevitable.</div>
+        <div class="manifesto-copy">
+          <p>好的互動作品會讓技術藏在體驗裡。架構要足夠清楚，動態要有物理感，資訊要有層級，而每一個細節都應該服務同一個世界觀。</p>
+          <p>DESI 使用原生 JavaScript、Canvas 2D 與 WebGL，刻意保持系統透明：每一層視覺都能追溯到一個規則，每一次互動都有可理解的原因。</p>
+          <div class="stack">
+            <div><span>Core</span><span>HTML / CSS / JavaScript</span></div>
+            <div><span>Realtime</span><span>Canvas 2D / WebGL</span></div>
+            <div><span>Quality</span><span>Performance / A11y / SEO</span></div>
+            <div><span>Delivery</span><span>GitHub Pages / CI checks</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section connect" id="connect">
+      <div>
+        <p class="kicker reveal"><span>//04</span> Connect / source & experiments</p>
+        <h2 class="reveal">Enter the<br /><span>field.</span></h2>
+      </div>
+      <div class="connect-links reveal">
+        <a href="../"><span>DESI / Live experience</span><b>↗</b></a>
+        <a href="https://github.com/xieyaozhong/DESI" target="_blank" rel="noreferrer"><span>GitHub / Source</span><b>↗</b></a>
+      </div>
+    </section>
+
+    <footer>
+      <span>DESI / Standalone portfolio interface</span>
+      <span>Move pointer to disturb matter / scroll to decode</span>
+    </footer>
+  </main>
+
+  <script>
+    (() => {
+      const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const menu = document.getElementById('menu');
+      const menuToggle = document.getElementById('menuToggle');
+      const progress = document.getElementById('progress');
+      const cursor = document.getElementById('cursor');
+      const canvas = document.getElementById('field');
+      const ctx = canvas.getContext('2d', { alpha: true });
+
+      function setMenu(open) {
+        menu.classList.toggle('open', open);
+        menu.setAttribute('aria-hidden', String(!open));
+        menuToggle.setAttribute('aria-expanded', String(open));
+        menuToggle.textContent = open ? 'Close' : 'Menu';
+        document.body.style.overflow = open ? 'hidden' : '';
+      }
+
+      menuToggle.addEventListener('click', () => setMenu(!menu.classList.contains('open')));
+      menu.querySelectorAll('a').forEach(a => a.addEventListener('click', () => setMenu(false)));
+      addEventListener('keydown', e => { if (e.key === 'Escape') setMenu(false); });
+
+      function onScroll() {
+        const max = document.documentElement.scrollHeight - innerHeight;
+        const ratio = max > 0 ? scrollY / max : 0;
+        progress.style.transform = `scaleX(${ratio})`;
+      }
+      addEventListener('scroll', onScroll, { passive: true });
+      onScroll();
+
+      const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: .12 });
+      document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+      if (matchMedia('(pointer:fine)').matches) {
+        addEventListener('pointermove', e => {
+          cursor.style.left = `${e.clientX}px`;
+          cursor.style.top = `${e.clientY}px`;
+        });
+        document.querySelectorAll('a, button').forEach(el => {
+          el.addEventListener('pointerenter', () => cursor.classList.add('hot'));
+          el.addEventListener('pointerleave', () => cursor.classList.remove('hot'));
+        });
+      }
+
+      if (!ctx) return;
+      let dpr = Math.min(devicePixelRatio || 1, 1.75);
+      let w = 0, h = 0;
+      const pointer = { x: innerWidth * .5, y: innerHeight * .45, active: false };
+      const particles = [];
+      const count = reduceMotion ? 42 : Math.min(130, Math.floor(innerWidth / 9));
+
+      function resize() {
+        w = innerWidth; h = innerHeight;
+        dpr = Math.min(devicePixelRatio || 1, 1.75);
+        canvas.width = Math.round(w * dpr);
+        canvas.height = Math.round(h * dpr);
+        canvas.style.width = `${w}px`;
+        canvas.style.height = `${h}px`;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+
+      function seed() {
+        particles.length = 0;
+        for (let i = 0; i < count; i++) {
+          particles.push({
+            x: Math.random() * w,
+            y: Math.random() * h,
+            ox: Math.random() * w,
+            oy: Math.random() * h,
+            vx: 0,
+            vy: 0,
+            r: Math.random() * 1.1 + .3,
+            phase: Math.random() * Math.PI * 2
+          });
+        }
+      }
+
+      function resizeAndSeed() { resize(); seed(); }
+      addEventListener('resize', resizeAndSeed, { passive: true });
+      addEventListener('pointermove', e => {
+        pointer.x = e.clientX; pointer.y = e.clientY; pointer.active = true;
+      }, { passive: true });
+      addEventListener('pointerleave', () => { pointer.active = false; });
+
+      function draw(t) {
+        ctx.clearRect(0, 0, w, h);
+        ctx.lineWidth = .55;
+
+        for (let i = 0; i < particles.length; i++) {
+          const p = particles[i];
+          const breathe = Math.sin(t * .00038 + p.phase) * 9;
+          const tx = p.ox + Math.cos(p.phase * 1.7) * breathe;
+          const ty = p.oy + Math.sin(p.phase * 1.2) * breathe;
+          p.vx += (tx - p.x) * .0018;
+          p.vy += (ty - p.y) * .0018;
+
+          if (pointer.active && !reduceMotion) {
+            const dx = p.x - pointer.x;
+            const dy = p.y - pointer.y;
+            const d2 = dx * dx + dy * dy;
+            if (d2 < 42000 && d2 > 1) {
+              const d = Math.sqrt(d2);
+              const force = (1 - d / 205) * .42;
+              p.vx += (dx / d) * force;
+              p.vy += (dy / d) * force;
+            }
+          }
+
+          p.vx *= .965; p.vy *= .965;
+          p.x += p.vx; p.y += p.vy;
+
+          ctx.fillStyle = 'rgba(241,241,237,.64)';
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fill();
+
+          for (let j = i + 1; j < particles.length; j++) {
+            const q = particles[j];
+            const dx = q.x - p.x, dy = q.y - p.y;
+            const dist2 = dx * dx + dy * dy;
+            if (dist2 < 7600) {
+              const alpha = (1 - dist2 / 7600) * .11;
+              ctx.strokeStyle = `rgba(241,241,237,${alpha})`;
+              ctx.beginPath();
+              ctx.moveTo(p.x, p.y);
+              ctx.lineTo(q.x, q.y);
+              ctx.stroke();
+            }
+          }
+        }
+
+        if (!reduceMotion) requestAnimationFrame(draw);
+      }
+
+      resizeAndSeed();
+      requestAnimationFrame(draw);
+    })();
+  </script>
+</body>
+</html>
