@@ -1,66 +1,169 @@
 <!doctype html>
 <html lang="zh-Hant">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#090806"><meta name="description" content="DESI EDGE LAB — 投降、信念破裂與主觀勝率的投資判斷備忘錄。">
-<title>DESI — EDGE LAB / CAPITULATION</title>
-<style>
-:root{--bg:#090806;--paper:#f3eee3;--muted:#aaa18f;--line:rgba(243,238,227,.14);--red:#ff6247;--amber:#f4b45f;--lime:#d8ff76;--serif:"Iowan Old Style","Noto Serif TC","Songti TC",serif;--sans:"Inter","Noto Sans TC","PingFang TC",system-ui,sans-serif;--mono:"SFMono-Regular",Consolas,monospace;--edge:clamp(20px,5vw,72px)}
-*{box-sizing:border-box}html{scroll-behavior:smooth;background:var(--bg)}body{margin:0;background:var(--bg);color:var(--paper);font-family:var(--sans);overflow-x:hidden}a{color:inherit;text-decoration:none}button,input,textarea{font:inherit}::selection{background:var(--red);color:#090806}
-body:before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-2;background:radial-gradient(circle at 72% 10%,rgba(255,98,71,.10),transparent 27%),radial-gradient(circle at 18% 80%,rgba(244,180,95,.08),transparent 30%),linear-gradient(180deg,#090806,#0d0b08 55%,#070604)}
-body:after{content:"";position:fixed;inset:0;pointer-events:none;z-index:90;opacity:.055;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
-nav{position:fixed;z-index:70;top:0;left:0;width:100%;height:78px;padding:0 var(--edge);display:flex;align-items:center;justify-content:space-between;background:linear-gradient(180deg,rgba(9,8,6,.94),rgba(9,8,6,0));pointer-events:none}.brand,.navlinks{pointer-events:auto}.brand{font:700 11px/1 var(--mono);letter-spacing:.2em}.brand span{display:block;margin-top:7px;color:var(--muted);font-size:8px;font-weight:400}.navlinks{display:flex;gap:8px}.pill{border:1px solid var(--line);border-radius:999px;padding:10px 13px;font:9px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;background:rgba(10,9,7,.55)}
-.progress{position:fixed;z-index:100;top:0;left:0;height:2px;width:0;background:linear-gradient(90deg,var(--red),var(--amber),var(--lime));box-shadow:0 0 12px rgba(255,98,71,.45)}
-.hero{min-height:100svh;padding:150px var(--edge) 72px;display:grid;grid-template-columns:minmax(0,1.2fr) minmax(280px,.8fr);gap:7vw;align-items:end}.kicker{color:var(--red);font:10px/1 var(--mono);letter-spacing:.26em;text-transform:uppercase}.hero h1{margin:22px 0 0;font:400 clamp(66px,11vw,168px)/.76 var(--serif);letter-spacing:-.065em}.hero h1 em{display:block;color:transparent;-webkit-text-stroke:1px rgba(243,238,227,.62);font-weight:400}.hero .lead{max-width:760px;margin:32px 0 0;color:rgba(243,238,227,.72);font:400 clamp(16px,1.7vw,22px)/1.75 var(--serif)}.hero-side{border-top:1px solid var(--line);padding-top:20px}.hero-side small{font:9px/1 var(--mono);letter-spacing:.16em;color:var(--muted)}.hero-side p{font:400 22px/1.45 var(--serif);margin:18px 0}.disclaimer{color:var(--muted);font:10px/1.6 var(--mono)}
-section{padding:110px var(--edge);border-top:1px solid var(--line)}.section-head{display:grid;grid-template-columns:220px 1fr;gap:5vw;margin-bottom:56px}.section-head small{font:9px/1.5 var(--mono);letter-spacing:.17em;color:var(--muted)}.section-head h2{margin:0;font:400 clamp(46px,6vw,88px)/.92 var(--serif);letter-spacing:-.045em}.section-head p{max-width:720px;color:rgba(243,238,227,.64);line-height:1.8;margin:20px 0 0}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:22px}.panel{border:1px solid var(--line);border-radius:26px;background:rgba(255,255,255,.018);overflow:hidden}.panel-pad{padding:clamp(24px,4vw,44px)}
-.belief{min-height:560px;display:grid;grid-template-columns:.75fr 1.25fr}.ladder{border-right:1px solid var(--line);display:flex;flex-direction:column}.step{flex:1;border:0;border-bottom:1px solid var(--line);background:transparent;color:inherit;text-align:left;padding:24px;cursor:pointer;transition:.25s}.step:last-child{border-bottom:0}.step small{display:block;font:9px/1 var(--mono);color:var(--muted);letter-spacing:.13em}.step strong{display:block;font:400 clamp(36px,5vw,70px)/1 var(--serif);margin-top:12px}.step span{display:block;margin-top:10px;color:rgba(243,238,227,.55);font-size:12px}.step.active{background:linear-gradient(90deg,rgba(255,98,71,.16),transparent);box-shadow:inset 3px 0 0 var(--red)}.belief-view{padding:clamp(28px,5vw,58px);display:flex;flex-direction:column;justify-content:space-between}.emotion{font:400 clamp(64px,8vw,118px)/.85 var(--serif);letter-spacing:-.06em}.emotion-cn{margin-top:14px;color:var(--red);font:10px/1 var(--mono);letter-spacing:.25em}.belief-copy{max-width:560px;color:rgba(243,238,227,.7);font:18px/1.8 var(--serif)}.belief-copy strong{color:var(--paper)}
-.cycle{position:relative;min-height:520px;display:grid;place-items:center;background:radial-gradient(circle at 50% 50%,rgba(216,255,118,.05),transparent 34%)}.ring{width:min(78vw,440px);aspect-ratio:1;border:1px solid var(--line);border-radius:50%;position:relative}.ring:before,.ring:after{content:"";position:absolute;inset:12%;border:1px dashed rgba(243,238,227,.09);border-radius:50%}.ring:after{inset:28%}.node{position:absolute;width:108px;min-height:72px;padding:13px;border:1px solid var(--line);border-radius:18px;background:#0d0b08;text-align:center}.node b{display:block;font:400 24px/1 var(--serif)}.node small{font:8px/1.4 var(--mono);color:var(--muted);letter-spacing:.11em}.n1{left:50%;top:-20px;transform:translateX(-50%)}.n2{right:-38px;top:31%}.n3{right:12%;bottom:-22px}.n4{left:12%;bottom:-22px}.n5{left:-38px;top:31%}.core{position:absolute;inset:35%;border-radius:50%;display:grid;place-items:center;text-align:center;border:1px solid rgba(216,255,118,.28);background:rgba(216,255,118,.04);box-shadow:0 0 80px rgba(216,255,118,.03)}.core strong{font:400 32px/1 var(--serif)}.core small{display:block;margin-top:8px;font:8px/1.4 var(--mono);color:var(--lime);letter-spacing:.12em}
-.edgebox{display:grid;grid-template-columns:.75fr 1.25fr}.edge-meter{padding:40px;border-right:1px solid var(--line);display:flex;flex-direction:column;justify-content:center}.bigpct{font:400 clamp(92px,13vw,180px)/.8 var(--serif);letter-spacing:-.08em}.bigpct span{font-size:.35em;color:var(--lime)}.range{width:100%;accent-color:var(--lime);margin-top:34px}.edge-copy{padding:44px}.edge-copy h3{font:400 clamp(36px,4vw,62px)/1 var(--serif);margin:0}.edge-copy p{font:17px/1.8 var(--serif);color:rgba(243,238,227,.7)}.status{display:inline-flex;margin-top:16px;padding:10px 12px;border:1px solid rgba(216,255,118,.25);border-radius:999px;color:var(--lime);font:9px/1 var(--mono);letter-spacing:.14em}.note{margin-top:26px;border-left:2px solid var(--amber);padding-left:18px;color:var(--muted);font:11px/1.8 var(--mono)}
-.cases{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}.case{border:1px solid var(--line);border-radius:20px;padding:22px;min-height:170px;background:rgba(255,255,255,.012);cursor:pointer;transition:.25s}.case:hover,.case.active{border-color:rgba(255,98,71,.5);transform:translateY(-3px)}.case small{font:8px/1 var(--mono);color:var(--muted);letter-spacing:.13em}.case strong{display:block;margin-top:18px;font:400 28px/1 var(--serif)}.case span{display:block;margin-top:14px;color:rgba(243,238,227,.5);font-size:11px;line-height:1.5}.case-editor{margin-top:18px;display:none}.case-editor.open{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.field{display:flex;flex-direction:column;gap:8px}.field label{font:8px/1 var(--mono);letter-spacing:.13em;color:var(--muted)}textarea{width:100%;min-height:110px;resize:vertical;background:#0c0a07;color:var(--paper);border:1px solid var(--line);border-radius:14px;padding:14px;outline:none}textarea:focus{border-color:rgba(255,98,71,.5)}
-.meetup{display:grid;grid-template-columns:1fr 1fr;gap:20px}.meetup-card{border:1px solid var(--line);border-radius:26px;padding:36px}.meetup-card h3{margin:0;font:400 42px/1 var(--serif)}.agenda{margin-top:26px}.agenda div{padding:16px 0;border-top:1px solid var(--line);display:flex;gap:18px}.agenda b{font:9px/1 var(--mono);color:var(--red)}.agenda span{color:rgba(243,238,227,.72);font-size:13px}.quote{font:400 clamp(34px,5vw,72px)/1.18 var(--serif);letter-spacing:-.035em}.quote em{color:var(--red);font-style:normal}.footer{padding:70px var(--edge) 100px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:24px;color:var(--muted);font:9px/1.6 var(--mono);letter-spacing:.1em}.reveal{opacity:0;transform:translateY(24px);transition:.8s cubic-bezier(.16,1,.3,1)}.reveal.on{opacity:1;transform:none}
-@media(max-width:900px){.hero{grid-template-columns:1fr;padding-top:130px}.section-head{grid-template-columns:1fr}.grid2,.meetup,.edgebox,.belief{grid-template-columns:1fr}.belief .ladder,.edge-meter{border-right:0;border-bottom:1px solid var(--line)}.cases{grid-template-columns:1fr 1fr}.case-editor.open{grid-template-columns:1fr}.navlinks .optional{display:none}.footer{flex-direction:column}.ring{width:min(78vw,360px)}.node{width:88px}.n2{right:-26px}.n5{left:-26px}}
-@media(max-width:560px){section{padding:82px 20px}.hero{padding-left:20px;padding-right:20px}.navlinks{gap:4px}.pill{padding:9px}.cases{grid-template-columns:1fr}.belief{min-height:auto}.step{padding:18px}.belief-view{min-height:420px}.ring{width:300px}.node{width:78px;padding:10px}.node b{font-size:18px}.core strong{font-size:23px}}
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#080806">
+  <meta name="description" content="DESI EDGE LAB — 信念破裂、投降與主觀勝率的投資決策研究筆記。">
+  <title>DESI — EDGE LAB / CAPITULATION</title>
+  <style>
+    :root{
+      --bg:#080806;--bg2:#0e0e0b;--panel:#11110d;--paper:#f3eee4;--muted:#aaa392;--dim:#6f6b61;
+      --line:rgba(243,238,228,.12);--line2:rgba(243,238,228,.23);--red:#ff684f;--amber:#efb568;--lime:#d8ff77;
+      --serif:"Iowan Old Style","Baskerville","Noto Serif TC","Songti TC",serif;
+      --sans:"Inter","Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+      --mono:"SFMono-Regular","Cascadia Mono","Roboto Mono",Consolas,monospace;
+      --edge:clamp(20px,4.6vw,70px);--radius:24px;
+    }
+    *{box-sizing:border-box}html{scroll-behavior:smooth;background:var(--bg)}body{margin:0;background:var(--bg);color:var(--paper);font-family:var(--sans);overflow-x:hidden}
+    body::before{content:"";position:fixed;inset:-25%;z-index:-3;pointer-events:none;background:radial-gradient(circle at 82% 12%,rgba(255,104,79,.09),transparent 24%),radial-gradient(circle at 22% 70%,rgba(216,255,119,.045),transparent 30%),linear-gradient(180deg,#080806,#0b0b08 55%,#070705)}
+    body::after{content:"";position:fixed;inset:0;z-index:100;pointer-events:none;opacity:.045;mix-blend-mode:soft-light;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.88' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.65'/%3E%3C/svg%3E")}
+    a{color:inherit;text-decoration:none}button,input,textarea{font:inherit;color:inherit}button{cursor:pointer}::selection{background:var(--lime);color:var(--bg)}:focus-visible{outline:2px solid var(--lime);outline-offset:3px}
+
+    .frame{position:fixed;inset:12px;z-index:90;border:1px solid rgba(243,238,228,.075);pointer-events:none;clip-path:polygon(16px 0,calc(100% - 16px) 0,100% 16px,100% calc(100% - 16px),calc(100% - 16px) 100%,16px 100%,0 calc(100% - 16px),0 16px)}
+    .progress{position:fixed;top:0;left:0;width:100%;height:2px;z-index:120}.progress i{display:block;width:0;height:100%;background:linear-gradient(90deg,var(--lime),var(--amber),var(--red))}
+    .top{position:fixed;top:0;left:0;width:100%;height:78px;padding:0 max(var(--edge),28px);z-index:75;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(180deg,rgba(8,8,6,.96),rgba(8,8,6,.72) 65%,transparent);backdrop-filter:blur(10px);pointer-events:none}
+    .brand,.nav{pointer-events:auto}.brand{display:flex;align-items:center;gap:12px}.dotmark{width:25px;height:25px;border:1px solid var(--line2);border-radius:50%;position:relative}.dotmark::before{content:"";position:absolute;width:7px;height:7px;border-radius:50%;background:var(--red);left:8px;top:8px;box-shadow:0 0 18px rgba(255,104,79,.6)}.brand strong{display:block;font:700 11px/1 var(--sans);letter-spacing:.21em}.brand small{display:block;margin-top:5px;font:8px/1 var(--mono);color:var(--dim);letter-spacing:.14em}
+    .nav{display:flex;gap:8px}.nav a,.nav button{border:1px solid var(--line);background:rgba(15,15,11,.42);border-radius:999px;padding:10px 12px;font:8px/1 var(--mono);letter-spacing:.11em;color:var(--muted);text-transform:uppercase;transition:.25s}.nav a:hover,.nav button:hover{border-color:var(--line2);color:var(--paper);background:rgba(255,255,255,.03)}
+
+    .hero{min-height:94svh;padding:138px var(--edge) 76px;display:grid;grid-template-columns:minmax(0,1.25fr) minmax(300px,.75fr);gap:6vw;align-items:end;position:relative}
+    .kicker{display:flex;gap:12px;align-items:center;font:8px/1 var(--mono);letter-spacing:.22em;color:var(--red);text-transform:uppercase}.kicker i{display:block;width:42px;height:1px;background:linear-gradient(90deg,var(--red),transparent)}
+    h1{margin:26px 0 0;font:400 clamp(65px,10vw,150px)/.78 var(--serif);letter-spacing:-.065em}.outline{display:block;color:transparent;-webkit-text-stroke:1px rgba(243,238,228,.58)}
+    .hero-lead{max-width:760px;margin:32px 0 0;font:400 clamp(18px,1.8vw,25px)/1.72 var(--serif);color:rgba(243,238,228,.68)}.hero-lead strong{color:var(--lime);font-weight:400}
+    .hero-side{display:grid;gap:10px}.signal{border:1px solid var(--line);border-radius:20px;padding:20px;background:rgba(17,17,13,.62);backdrop-filter:blur(8px)}.signal small{font:8px/1 var(--mono);letter-spacing:.11em;color:var(--dim);text-transform:uppercase}.signal strong{display:block;margin-top:14px;font:400 22px/1.25 var(--serif)}.signal p{margin:8px 0 0;color:var(--muted);font-size:11px;line-height:1.65}.signal.hot strong{color:var(--red)}.signal.edge strong{color:var(--lime)}
+    .scroll{position:absolute;left:var(--edge);bottom:26px;display:flex;gap:12px;align-items:center;font:8px/1 var(--mono);letter-spacing:.15em;color:var(--dim);text-transform:uppercase}.scroll i{width:44px;height:1px;background:linear-gradient(90deg,var(--red),transparent)}
+
+    .layout{display:grid;grid-template-columns:220px minmax(0,1fr);border-top:1px solid var(--line)}
+    .rail{position:relative;border-right:1px solid var(--line)}.rail-inner{position:sticky;top:102px;padding:46px 30px 52px var(--edge)}.rail-label{font:8px/1.6 var(--mono);letter-spacing:.14em;color:var(--dim);text-transform:uppercase}.rail-nav{display:grid;margin-top:30px}.rail-nav a{padding:13px 0;border-bottom:1px solid var(--line);font:9px/1 var(--mono);letter-spacing:.09em;color:var(--muted);transition:.25s}.rail-nav a span{display:inline-block;width:32px;color:var(--dim)}.rail-nav a.active,.rail-nav a:hover{color:var(--paper)}.rail-nav a.active span{color:var(--red)}.rail-note{margin-top:34px;font:8px/1.75 var(--mono);color:var(--dim)}
+    .content{min-width:0}.section{padding:110px var(--edge);border-bottom:1px solid var(--line);min-height:78svh}.section-head{display:grid;grid-template-columns:.32fr 1.68fr;gap:4vw;align-items:start}.section-no{font:8px/1.7 var(--mono);letter-spacing:.15em;color:var(--dim);text-transform:uppercase}.section-no b{display:block;color:var(--red);font-weight:500;margin-bottom:7px}.section-copy h2{margin:0;font:400 clamp(43px,6vw,82px)/.94 var(--serif);letter-spacing:-.045em}.section-copy .lead{max-width:800px;margin:24px 0 0;font:400 clamp(17px,1.7vw,23px)/1.75 var(--serif);color:rgba(243,238,228,.67)}
+
+    .belief-panel{margin-top:50px;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:linear-gradient(135deg,rgba(255,104,79,.04),rgba(255,255,255,.01))}.belief-top{padding:24px 26px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:20px;align-items:center}.belief-top small{font:8px/1 var(--mono);letter-spacing:.12em;color:var(--dim)}.belief-stage{font:400 18px/1 var(--serif);color:var(--red)}
+    .belief-steps{display:grid;grid-template-columns:repeat(4,1fr)}.belief-step{min-height:210px;padding:26px;border:0;border-right:1px solid var(--line);background:transparent;text-align:left;position:relative;transition:.3s}.belief-step:last-child{border-right:0}.belief-step:hover,.belief-step.active{background:rgba(255,255,255,.025)}.belief-step::before{content:"";position:absolute;left:26px;top:30px;width:8px;height:8px;border-radius:50%;border:1px solid var(--muted);background:var(--bg)}.belief-step.active::before{background:var(--red);border-color:var(--red);box-shadow:0 0 20px rgba(255,104,79,.5)}.belief-step b{display:block;margin-top:34px;font:400 clamp(29px,3.3vw,48px)/1 var(--serif)}.belief-step span{display:block;margin-top:12px;font:9px/1.5 var(--mono);letter-spacing:.05em;color:var(--muted)}.belief-step p{margin:22px 0 0;color:var(--dim);font-size:11px;line-height:1.7}.belief-step.active p{color:var(--muted)}
+    .belief-reading{padding:24px 26px;border-top:1px solid var(--line);display:grid;grid-template-columns:130px 1fr;gap:24px}.belief-reading small{font:8px/1.5 var(--mono);color:var(--dim);letter-spacing:.1em}.belief-reading p{margin:0;font:400 18px/1.65 var(--serif);color:rgba(243,238,228,.72)}
+
+    .cycle{margin-top:50px;display:grid;grid-template-columns:repeat(6,1fr);border:1px solid var(--line);border-radius:22px;overflow:hidden}.cycle-step{min-height:160px;padding:22px;border-right:1px solid var(--line);position:relative}.cycle-step:last-child{border-right:0}.cycle-step small{font:8px/1 var(--mono);color:var(--dim)}.cycle-step strong{display:block;margin-top:32px;font:400 21px/1.3 var(--serif)}.cycle-step p{margin:10px 0 0;color:var(--dim);font-size:10px;line-height:1.6}.cycle-step.edge{background:rgba(216,255,119,.035)}.cycle-step.edge strong{color:var(--lime)}.cycle-step.exit strong{color:var(--amber)}
+    .cycle-caption{margin-top:22px;padding-left:20px;border-left:1px solid var(--lime);font:400 20px/1.65 var(--serif);color:rgba(243,238,228,.64)}
+
+    .prob-grid{margin-top:50px;display:grid;grid-template-columns:minmax(260px,.78fr) minmax(0,1.22fr);gap:14px}.gauge-card,.prob-copy{border:1px solid var(--line);border-radius:var(--radius);padding:clamp(26px,4vw,46px);background:rgba(255,255,255,.012)}.gauge-wrap{display:grid;place-items:center}.gauge{--p:75;width:min(300px,70vw);aspect-ratio:1;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--lime) calc((var(--p) - 50) * 2.5%),rgba(243,238,228,.07) 0);position:relative}.gauge::before{content:"";position:absolute;inset:15px;border-radius:50%;background:var(--bg2);border:1px solid var(--line)}.gauge-value{position:relative;text-align:center}.gauge-value strong{display:block;font:400 clamp(55px,7vw,88px)/.8 var(--serif);letter-spacing:-.05em}.gauge-value small{display:block;margin-top:14px;font:8px/1 var(--mono);letter-spacing:.12em;color:var(--dim)}
+    .range{width:100%;margin-top:34px;accent-color:var(--lime)}.range-labels{display:flex;justify-content:space-between;margin-top:10px;font:8px/1 var(--mono);color:var(--dim)}.prob-copy small{font:8px/1 var(--mono);letter-spacing:.13em;color:var(--dim)}.prob-state{margin-top:20px;font:400 clamp(34px,4vw,58px)/1 var(--serif);letter-spacing:-.035em;color:var(--lime)}.prob-copy p{max-width:650px;margin:22px 0 0;color:var(--muted);font-size:13px;line-height:1.85}.prob-rule{margin-top:30px;padding-top:24px;border-top:1px solid var(--line)}.prob-rule b{display:block;font:400 22px/1.5 var(--serif);font-weight:400}.prob-rule span{display:block;margin-top:10px;color:var(--dim);font-size:11px;line-height:1.7}
+
+    .archive{margin-top:50px}.case-tabs{display:flex;gap:8px;overflow:auto;padding-bottom:4px;scrollbar-width:none}.case-tabs::-webkit-scrollbar{display:none}.case-tab{flex:0 0 auto;border:1px solid var(--line);border-radius:999px;background:transparent;padding:11px 15px;font:8px/1 var(--mono);letter-spacing:.08em;color:var(--muted)}.case-tab.active{background:var(--paper);color:var(--bg);border-color:var(--paper)}
+    .case-sheet{margin-top:16px;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}.case-head{padding:26px 28px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:20px;align-items:end;background:rgba(255,255,255,.018)}.case-head small{font:8px/1 var(--mono);letter-spacing:.11em;color:var(--dim)}.case-head h3{margin:9px 0 0;font:400 34px/1 var(--serif)}.save-state{font:8px/1 var(--mono);letter-spacing:.08em;color:var(--lime)}
+    .fields{display:grid;grid-template-columns:1fr 1fr}.field{padding:25px 28px;border-right:1px solid var(--line);border-bottom:1px solid var(--line)}.field:nth-child(2n){border-right:0}.field:nth-last-child(-n+2){border-bottom:0}.field label{display:flex;justify-content:space-between;gap:15px;font:8px/1.4 var(--mono);letter-spacing:.1em;color:var(--muted);text-transform:uppercase}.field label span{color:var(--dim);text-transform:none;letter-spacing:0}.field textarea{margin-top:16px;width:100%;min-height:130px;resize:vertical;border:0;outline:0;background:transparent;color:var(--paper);font:400 15px/1.75 var(--serif)}.field textarea::placeholder{color:#57544c}.archive-foot{padding:17px 28px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:20px;font:8px/1.5 var(--mono);color:var(--dim)}
+
+    .closing{padding:100px var(--edge) 90px}.closing .quote{max-width:1050px;font:400 clamp(35px,5.4vw,76px)/1.2 var(--serif);letter-spacing:-.04em}.closing .quote em{font-style:normal;color:var(--lime)}.closing-links{margin-top:70px;display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--line)}.closing-links a,.closing-links button{padding:22px 0;border:0;border-right:1px solid var(--line);background:transparent;text-align:left}.closing-links>*:last-child{border-right:0}.closing-links small{display:block;font:8px/1 var(--mono);color:var(--dim);letter-spacing:.1em}.closing-links strong{display:block;margin-top:9px;font:400 17px/1.3 var(--serif)}
+    .fineprint{margin-top:42px;display:flex;justify-content:space-between;gap:20px;color:var(--dim);font:8px/1.6 var(--mono);letter-spacing:.08em;text-transform:uppercase}
+    .reveal{opacity:0;transform:translateY(20px);transition:opacity .8s cubic-bezier(.22,1,.36,1),transform .8s cubic-bezier(.22,1,.36,1)}.reveal.on{opacity:1;transform:none}
+
+    @media(max-width:1050px){.hero{grid-template-columns:1fr}.hero-side{grid-template-columns:repeat(3,1fr)}.layout{grid-template-columns:1fr}.rail{display:none}.section-head{grid-template-columns:1fr}.cycle{grid-template-columns:repeat(3,1fr)}.cycle-step:nth-child(3){border-right:0}.cycle-step:nth-child(-n+3){border-bottom:1px solid var(--line)}}
+    @media(max-width:720px){:root{--edge:22px}.frame{inset:7px}.top{height:69px;padding:0 22px}.brand small{display:none}.nav a:first-child{display:none}.nav button{display:none}.hero{padding-top:112px;min-height:auto;padding-bottom:92px}.hero-side{grid-template-columns:1fr}.scroll{bottom:19px}.section{padding-top:80px;padding-bottom:80px;min-height:auto}.belief-steps{grid-template-columns:1fr 1fr}.belief-step:nth-child(2){border-right:0}.belief-step:nth-child(-n+2){border-bottom:1px solid var(--line)}.belief-reading{grid-template-columns:1fr}.cycle{grid-template-columns:1fr 1fr}.cycle-step:nth-child(odd){border-right:1px solid var(--line)}.cycle-step:nth-child(even){border-right:0}.cycle-step{border-bottom:1px solid var(--line)}.cycle-step:nth-last-child(-n+2){border-bottom:0}.prob-grid{grid-template-columns:1fr}.fields{grid-template-columns:1fr}.field,.field:nth-child(2n){border-right:0;border-bottom:1px solid var(--line)}.field:last-child{border-bottom:0}.closing-links{grid-template-columns:1fr}.closing-links a,.closing-links button{border-right:0;border-bottom:1px solid var(--line)}.fineprint{flex-direction:column}.archive-foot{flex-direction:column}.case-head{align-items:start;flex-direction:column}}
+    @media(max-width:430px){.belief-step{min-height:180px;padding:21px}.belief-step::before{left:21px;top:24px}.cycle-step{min-height:145px;padding:18px}.gauge{width:250px}}
+    @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}.reveal{opacity:1;transform:none;transition:none}}
+    @media print{body{background:#fff;color:#111}.frame,.progress,.top,.rail,.scroll,.nav,.closing-links{display:none!important}.hero,.section,.closing{padding:42px}.hero{min-height:auto}.layout{display:block}.section{min-height:auto;break-inside:avoid;border-color:#ccc}.signal,.belief-panel,.gauge-card,.prob-copy,.case-sheet{background:#fff;border-color:#ccc}.outline{color:#111;-webkit-text-stroke:0}.hero-lead,.section-copy .lead,.belief-reading p,.prob-copy p{color:#333}.gauge::before{background:#fff}.field textarea{color:#111}.reveal{opacity:1;transform:none}.fineprint{color:#555}}
+  </style>
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<nav><a class="brand" href="../">DESI / EDGE LAB<span>CAPITULATION · PROBABILITY · POSITIONING</span></a><div class="navlinks"><a class="pill optional" href="../go/">GO STRATEGY</a><a class="pill" href="../">FIELD NOTES</a></div></nav>
-<main>
-<section class="hero">
- <div class="reveal on"><div class="kicker">CASE SYSTEM / INVESTMENT</div><h1>WHERE BELIEF<br><em>BREAKS.</em></h1><p class="lead">你真正想買的，似乎一直不是「恐懼」本身，而是市場從希望一路走到信念破裂、接近投降的地方。</p></div>
- <div class="hero-side reveal on"><small>WORKING HYPOTHESIS / V0.1</small><p>市場不是只在跌價格。<br>它也在逐層摧毀「不可能跌到這裡」的信念。</p><div class="disclaimer">這是一份決策紀錄介面，不構成投資建議。頁面中的 50/50、75/25 是主觀判斷框架，不是經統計驗證的客觀勝率。</div></div>
-</section>
-<section>
- <div class="section-head reveal"><small>01 / BELIEF LADDER<br>大家認為不可能跌到哪裡？</small><div><h2>真正的衝擊，<br>是信念被市場穿過。</h2><p>點每一層價格。這裡刻意不把它畫成「支撐線」，而是畫成心理承諾：每跌破一層，市場參與者都必須重新解釋自己原本相信的世界。</p></div></div>
- <div class="panel belief reveal">
-  <div class="ladder"><button class="step active" data-emotion="HOPE" data-cn="希望" data-copy="「這只是回檔。」價格仍然落在原本故事可以解釋的範圍內。"><small>BELIEF 01</small><strong>70</strong><span>「不可能跌破 70」</span></button><button class="step" data-emotion="DOUBT" data-cn="懷疑" data-copy="第一個不可能已經發生。原本的確定開始變成『應該』。"><small>BELIEF 02</small><strong>60</strong><span>「60 總該有支撐」</span></button><button class="step" data-emotion="FEAR" data-cn="恐懼" data-copy="故事開始失效。投資人不再問會不會反彈，而是開始問自己是不是看錯了。"><small>BELIEF 03</small><strong>50</strong><span>「50 不可能吧」</span></button><button class="step" data-emotion="CAPITULATION" data-cn="投降" data-copy="當最後一層心理錨點也無法提供安慰，賣出的理由可能不再是估值，而只是『我受不了了』。"><small>STATE 04</small><strong>?</strong><span>價格不重要，狀態才重要</span></button></div>
-  <div class="belief-view"><div><div class="emotion" id="emotion">HOPE</div><div class="emotion-cn" id="emotionCn">希望</div></div><p class="belief-copy" id="beliefCopy">「這只是回檔。」價格仍然落在原本故事可以解釋的範圍內。</p></div>
- </div>
-</section>
-<section>
- <div class="section-head reveal"><small>02 / DECISION CYCLE<br>EDGE → BET → REPAIR → EXIT</small><div><h2>不是抓底。<br>是等待賠率偏移。</h2><p>你的模型更像一個循環：沒有明顯優勢時不必下注；主觀勝率向自己傾斜時開始承擔風險；市場修復後，當優勢再次消失，就離場。</p></div></div>
- <div class="panel cycle reveal"><div class="ring"><div class="node n1"><b>50/50</b><small>NO EDGE<br>觀察</small></div><div class="node n2"><b>70/30</b><small>EDGE APPEARS<br>準備</small></div><div class="node n3"><b>75/25</b><small>POSITION<br>下注</small></div><div class="node n4"><b>REPAIR</b><small>THESIS WORKS<br>修復</small></div><div class="node n5"><b>50/50</b><small>EDGE GONE<br>離場</small></div><div class="core"><div><strong>EDGE</strong><small>NOT CERTAINTY</small></div></div></div></div>
-</section>
-<section>
- <div class="section-head reveal"><small>03 / THE 75% IDEA<br>PARTIAL POSITIONING</small><div><h2>75% 不是「我抓到底」。<br>而是「我可以開始承擔風險」。</h2></div></div>
- <div class="panel edgebox reveal"><div class="edge-meter"><div class="bigpct"><span id="pct">75</span><span>%</span></div><input class="range" id="edgeRange" type="range" min="50" max="90" value="75"><div class="status" id="edgeStatus">EDGE / SCALE IN</div></div><div class="edge-copy"><h3 id="edgeTitle">勝率開始向我傾斜。</h3><p id="edgeText">即使 48～50 已經很好，也不是宣告「底部已被找到」。你只是認為條件開始值得下注，因此先買一部分，保留自己可能看錯的空間。</p><div class="note">重要：這個百分比應理解為你的「主觀決策信心」或內部評分，而不是市場真實、可測量的勝率。</div></div></div>
-</section>
-<section>
- <div class="section-head reveal"><small>04 / CASE 005+<br>RECENT OPERATIONS</small><div><h2>五個標的，<br>一套共同問題。</h2><p>我沒有替你虛構每一筆交易細節。下面把國巨、小日經、SPCX、力積電、比特幣做成可持續補寫的案例殼；點進去可以直接在瀏覽器留下自己的判斷紀錄，資料會保存在這台裝置。</p></div></div>
- <div class="cases reveal" id="caseTabs"><div class="case active" data-case="yageo"><small>CASE / 005A</small><strong>國巨</strong><span>共識在哪裡破？</span></div><div class="case" data-case="nikkei"><small>CASE / 005B</small><strong>小日經</strong><span>優勢何時回到 50/50？</span></div><div class="case" data-case="spcx"><small>CASE / 005C</small><strong>SPCX</strong><span>下注條件是什麼？</span></div><div class="case" data-case="psmc"><small>CASE / 005D</small><strong>力積電</strong><span>市場信念在哪一層？</span></div><div class="case" data-case="btc"><small>CASE / 005E</small><strong>比特幣</strong><span>何時是恐懼，何時是投降？</span></div></div>
- <div class="case-editor open reveal" id="caseEditor"><div class="field"><label>市場共識／「不可能跌到哪裡？」</label><textarea data-key="belief" placeholder="例如：市場普遍把哪個價格當作理所當然的底線？"></textarea></div><div class="field"><label>信念破裂訊號</label><textarea data-key="break" placeholder="哪一件事發生後，原本的敘事開始失效？"></textarea></div><div class="field"><label>下注區／為什麼不是更早？</label><textarea data-key="entry" placeholder="你的主觀優勢何時從接近 50/50 轉向 70/30 或 75/25？"></textarea></div><div class="field"><label>優勢消失／離場條件</label><textarea data-key="exit" placeholder="市場修復到哪裡，會讓這筆交易重新變成接近五五波？"></textarea></div></div>
-</section>
-<section>
- <div class="section-head reveal"><small>05 / MEETUP PROTOTYPE<br>INVESTMENT GATHERING</small><div><h2>聚會不是報明牌。<br>是把判斷攤開來。</h2></div></div>
- <div class="meetup"><div class="meetup-card reveal"><h3>CASE CLINIC</h3><div class="agenda"><div><b>01</b><span>帶一個真實操作，不先說結果</span></div><div><b>02</b><span>先問「當時市場相信什麼？」</span></div><div><b>03</b><span>拆出主觀勝率如何改變</span></div><div><b>04</b><span>最後才揭露交易結果，檢查是否結果論</span></div></div></div><div class="meetup-card reveal"><div class="quote">我們研究的不是<br><em>「哪裡會漲？」</em><br>而是「什麼條件出現時，值得承擔風險？」</div></div></div>
-</section>
-</main>
-<footer class="footer"><span>DESI / EDGE LAB / 2026<br>DECISION MEMO SYSTEM</span><span>INVESTMENT NOTES FOR REFLECTION ONLY<br>NOT FINANCIAL ADVICE</span></footer>
-<script>
-const progress=document.getElementById('progress');addEventListener('scroll',()=>{const h=document.documentElement;progress.style.width=((scrollY/(h.scrollHeight-innerHeight||1))*100)+'%'},{passive:true});
-const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('on')}),{threshold:.1});document.querySelectorAll('.reveal:not(.on)').forEach(x=>io.observe(x));
-document.querySelectorAll('.step').forEach(btn=>btn.addEventListener('click',()=>{document.querySelectorAll('.step').forEach(x=>x.classList.remove('active'));btn.classList.add('active');emotion.textContent=btn.dataset.emotion;emotionCn.textContent=btn.dataset.cn;beliefCopy.textContent=btn.dataset.copy;}));
-const edgeRange=document.getElementById('edgeRange'),pct=document.getElementById('pct'),edgeStatus=document.getElementById('edgeStatus'),edgeTitle=document.getElementById('edgeTitle'),edgeText=document.getElementById('edgeText');function edgeUpdate(){const v=+edgeRange.value;pct.textContent=v;if(v<60){edgeStatus.textContent='NO EDGE / WAIT';edgeTitle.textContent='沒有明顯優勢。';edgeText.textContent='接近五五波時，不需要為了參與而參與。觀察本身就是一個有效決策。'}else if(v<72){edgeStatus.textContent='WATCH / PREPARE';edgeTitle.textContent='優勢開始出現，但還不夠厚。';edgeText.textContent='條件逐漸改善，可以開始建立劇本與失敗條件，但不必急著把判斷變成部位。'}else if(v<82){edgeStatus.textContent='EDGE / SCALE IN';edgeTitle.textContent='勝率開始向我傾斜。';edgeText.textContent='不是宣告底部已被找到，而是條件開始值得下注。先買一部分，保留自己可能看錯的空間。'}else{edgeStatus.textContent='HIGH CONVICTION / RISK CHECK';edgeTitle.textContent='信心很高，更要檢查自己是否過度確定。';edgeText.textContent='主觀信心越高，越需要反向提問：哪個條件一旦出現，會證明我其實錯了？'}}edgeRange.addEventListener('input',edgeUpdate);edgeUpdate();
-let current='yageo';const areas=[...document.querySelectorAll('#caseEditor textarea')];function loadCase(){areas.forEach(a=>a.value=localStorage.getItem('desi-invest-'+current+'-'+a.dataset.key)||'')}function saveCase(e){localStorage.setItem('desi-invest-'+current+'-'+e.target.dataset.key,e.target.value)}areas.forEach(a=>a.addEventListener('input',saveCase));document.querySelectorAll('.case').forEach(c=>c.addEventListener('click',()=>{document.querySelectorAll('.case').forEach(x=>x.classList.remove('active'));c.classList.add('active');current=c.dataset.case;loadCase();document.getElementById('caseEditor').classList.add('open')}));loadCase();
-</script>
-</body></html>
+  <div class="frame" aria-hidden="true"></div><div class="progress" aria-hidden="true"><i id="progressBar"></i></div>
+  <header class="top">
+    <a class="brand" href="../research/"><span class="dotmark" aria-hidden="true"></span><span><strong>EDGE LAB</strong><small>DESI / INVESTMENT RESEARCH</small></span></a>
+    <nav class="nav" aria-label="Edge Lab navigation"><a href="../research/">RESEARCH ROOMS</a><a href="../go/">GO LAB</a><button id="printTop">PRINT</button></nav>
+  </header>
+
+  <section class="hero">
+    <div class="reveal on">
+      <div class="kicker"><i></i>DECISION JOURNAL / NOT A PRICE TARGET</div>
+      <h1>EDGE<span class="outline">LAB</span></h1>
+      <p class="hero-lead">真正要找的不是「最低點」，而是<strong>優勢開始明顯偏向自己</strong>的時刻；真正要記的也不是價格本身，而是價格如何擊穿市場原本相信的故事。</p>
+    </div>
+    <aside class="hero-side reveal">
+      <div class="signal hot"><small>PSYCHOLOGY</small><strong>Hope → Capitulation</strong><p>追蹤信念何時從「不可能」變成「我放棄」。</p></div>
+      <div class="signal edge"><small>EDGE MODEL</small><strong>50/50 → 75/25</strong><p>勝率傾斜時部分下注，優勢消失時離開。</p></div>
+      <div class="signal"><small>CASE ARCHIVE</small><strong>005 / Growing</strong><p>國巨、小日經、SPCX、力積電、比特幣。</p></div>
+    </aside>
+    <div class="scroll"><i></i>scroll through the model</div>
+  </section>
+
+  <div class="layout">
+    <aside class="rail"><div class="rail-inner"><div class="rail-label">EDGE LAB / INDEX</div><nav class="rail-nav"><a href="#belief"><span>01</span>信念破裂</a><a href="#cycle"><span>02</span>勝率循環</a><a href="#probability"><span>03</span>下注強度</a><a href="#archive"><span>04</span>案例紀錄</a></nav><div class="rail-note">WORKING MODEL<br>V0.2 / 2026<br><br>不是預測市場。<br>是記錄自己何時有 edge。</div></div></aside>
+
+    <main class="content">
+      <section class="section" id="belief">
+        <div class="section-head"><div class="section-no reveal"><b>01 / BELIEF BREAK</b>CAPITULATION<br>PSYCHOLOGY</div><div class="section-copy reveal"><h2>先記「大家認為<br>不可能跌到哪裡？」</h2><p class="lead">當價格真的穿越那條線，心理衝擊不只是虧損，而是原本用來理解市場的信念被市場打破。你真正等待的，往往不是一般的恐懼，而是接近投降。</p></div></div>
+        <div class="belief-panel reveal">
+          <div class="belief-top"><small>EXAMPLE BELIEF LADDER / 點選階段</small><div class="belief-stage" id="beliefStage">HOPE / 希望</div></div>
+          <div class="belief-steps">
+            <button class="belief-step active" data-stage="HOPE / 希望" data-reading="市場仍相信原本的故事，只把下跌解讀成暫時波動。這時候價格跌了，但信念還沒有真正受傷。"><b>70</b><span>「不可能跌破 70」</span><p>故事仍完整，市場期待支撐。</p></button>
+            <button class="belief-step" data-stage="DOUBT / 懷疑" data-reading="第一條『不可能』被穿越後，市場開始修改說法：不是故事錯了，只是支撐位置要往下移。"><b>60</b><span>「60 總該有支撐」</span><p>敘事開始後退，仍試圖合理化。</p></button>
+            <button class="belief-step" data-stage="FEAR / 恐懼" data-reading="連續幾個心理錨點失效後，問題從『哪裡會止跌』變成『到底還會跌多少』，風險感知急速放大。"><b>50</b><span>「50 不可能吧」</span><p>價格問題開始變成信念問題。</p></button>
+            <button class="belief-step" data-stage="CAPITULATION / 投降" data-reading="投降不是單一價格，而是原本用來堅持的理由陸續失效。此時值得研究的不是『夠不夠便宜』，而是風險報酬是否開始不對稱。"><b>?</b><span>「我不想再看了」</span><p>故事瓦解，持有意願快速撤退。</p></button>
+          </div>
+          <div class="belief-reading"><small>WHAT CHANGED?</small><p id="beliefReading">市場仍相信原本的故事，只把下跌解讀成暫時波動。這時候價格跌了，但信念還沒有真正受傷。</p></div>
+        </div>
+      </section>
+
+      <section class="section" id="cycle">
+        <div class="section-head"><div class="section-no reveal"><b>02 / EDGE CYCLE</b>PROBABILITY<br>NOT CERTAINTY</div><div class="section-copy reveal"><h2>75% 不是底部。<br>是可以開始下注。</h2><p class="lead">「我認為現在勝率開始明顯向我傾斜，但仍然可能錯，所以只先買一部分。」這和小日經裡「勝率下降回接近五五波就離開」其實是同一個系統。</p></div></div>
+        <div class="cycle reveal">
+          <div class="cycle-step"><small>01 / NEUTRAL</small><strong>50 / 50</strong><p>沒有明顯優勢，觀察。</p></div>
+          <div class="cycle-step edge"><small>02 / EDGE</small><strong>70 / 30</strong><p>條件開始偏斜，準備。</p></div>
+          <div class="cycle-step edge"><small>03 / ACTION</small><strong>75 / 25</strong><p>可以部分承擔風險。</p></div>
+          <div class="cycle-step"><small>04 / POSITION</small><strong>下注</strong><p>不是 all-in，保留錯的空間。</p></div>
+          <div class="cycle-step"><small>05 / REPAIR</small><strong>市場修復</strong><p>原本的不對稱逐漸消失。</p></div>
+          <div class="cycle-step exit"><small>06 / EXIT</small><strong>≈ 50 / 50</strong><p>優勢回歸中性，離開。</p></div>
+        </div>
+        <div class="cycle-caption reveal">真正的模型不是「買低賣高」，而是：<strong>優勢出現時承擔風險；優勢消失時把風險拿回來。</strong></div>
+      </section>
+
+      <section class="section" id="probability">
+        <div class="section-head"><div class="section-no reveal"><b>03 / POSITION SIZE</b>SUBJECTIVE EDGE<br>CALIBRATION</div><div class="section-copy reveal"><h2>信心越高，<br>越要重新找反證。</h2><p class="lead">把「75%」當作可校準的主觀勝率，而不是自信標章。滑動下面的控制器，介面會隨著 edge 強度改變；越接近高信心，越需要明確寫出「什麼會證明我錯」。</p></div></div>
+        <div class="prob-grid reveal">
+          <div class="gauge-card"><div class="gauge-wrap"><div class="gauge" id="gauge"><div class="gauge-value"><strong id="probValue">75%</strong><small>SUBJECTIVE EDGE</small></div></div></div><input class="range" id="probRange" type="range" min="50" max="90" value="75" step="1" aria-label="主觀勝率"><div class="range-labels"><span>50 / NEUTRAL</span><span>70</span><span>90 / EXTREME</span></div></div>
+          <div class="prob-copy"><small>DECISION STATE</small><div class="prob-state" id="probState">SCALE IN</div><p id="probText">條件已經明顯偏向自己，但仍然保留錯誤空間。較適合用部分部位驗證，而不是把高勝率誤解成確定性。</p><div class="prob-rule"><b id="probQuestion">如果這個判斷錯了，最早會在哪個條件上露出來？</b><span>Edge Lab 不替你算真正勝率；它只要求主觀信念被寫得足夠清楚，日後才能回頭校準。</span></div></div>
+        </div>
+      </section>
+
+      <section class="section" id="archive">
+        <div class="section-head"><div class="section-no reveal"><b>04 / CASE ARCHIVE</b>005 RECORDED<br>LOCAL JOURNAL</div><div class="section-copy reveal"><h2>不要只記結果。<br>記當時相信什麼。</h2><p class="lead">每個案例只保留四個真正有用的欄位：市場共識、信念破裂、下注優勢、離場條件。內容會自動保存在這台裝置的瀏覽器裡。</p></div></div>
+        <div class="archive reveal">
+          <div class="case-tabs" role="tablist"><button class="case-tab active" data-case="yageo">國巨</button><button class="case-tab" data-case="nikkei">小日經</button><button class="case-tab" data-case="spcx">SPCX</button><button class="case-tab" data-case="psmc">力積電</button><button class="case-tab" data-case="btc">比特幣</button></div>
+          <div class="case-sheet">
+            <div class="case-head"><div><small>CASE / <span id="caseNumber">001</span></small><h3 id="caseTitle">國巨</h3></div><div class="save-state" id="saveState">LOCAL / READY</div></div>
+            <div class="fields">
+              <div class="field"><label>01 / 市場共識 <span>大家認為不可能跌到哪？</span></label><textarea data-field="consensus" placeholder="記錄當時最常見的心理錨點、價格信念或敘事…"></textarea></div>
+              <div class="field"><label>02 / 信念破裂 <span>什麼讓原故事失效？</span></label><textarea data-field="break" placeholder="不是只寫『跌了』，而是寫哪一個原本的理由被市場否定…"></textarea></div>
+              <div class="field"><label>03 / 下注優勢 <span>為什麼從 50/50 走向 70/30？</span></label><textarea data-field="edge" placeholder="記錄讓風險報酬開始傾斜的條件，而不是事後理由…"></textarea></div>
+              <div class="field"><label>04 / 離場條件 <span>什麼代表 edge 消失？</span></label><textarea data-field="exit" placeholder="市場修復、條件改變、勝率重新回到中性時，你要看到什麼？"></textarea></div>
+            </div>
+            <div class="archive-foot"><span>AUTOSAVE / LOCALSTORAGE</span><span>紀錄是為了日後校準，不是為了證明當時的自己是對的。</span></div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <footer class="closing">
+    <div class="quote reveal">EDGE ≠ CERTAINTY.<br><em>下注，是因為不對稱；不是因為確定。</em></div>
+    <div class="closing-links reveal"><button id="printBottom"><small>01 / PAPER</small><strong>列印決策備忘錄</strong></button><a href="../research/"><small>02 / ROOMS</small><strong>回到研究總入口</strong></a><a href="../go/"><small>03 / NEXT ROOM</small><strong>前往圍棋策略研究室</strong></a></div>
+    <div class="fineprint"><span>DESI / EDGE LAB / WORKING MODEL V0.2 / 2026</span><span>For research and reflection only. Not financial advice.</span></div>
+  </footer>
+
+  <script>
+    const progress=document.getElementById('progressBar');
+    const updateProgress=()=>{const d=document.documentElement,max=d.scrollHeight-innerHeight;progress.style.width=(max?scrollY/max*100:0)+'%'};addEventListener('scroll',updateProgress,{passive:true});updateProgress();
+    const revealIO=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('on')}),{threshold:.12});document.querySelectorAll('.reveal:not(.on)').forEach(el=>revealIO.observe(el));
+
+    document.querySelectorAll('.belief-step').forEach(btn=>btn.addEventListener('click',()=>{document.querySelectorAll('.belief-step').forEach(x=>x.classList.remove('active'));btn.classList.add('active');document.getElementById('beliefStage').textContent=btn.dataset.stage;document.getElementById('beliefReading').textContent=btn.dataset.reading;}));
+
+    const range=document.getElementById('probRange'),gauge=document.getElementById('gauge'),value=document.getElementById('probValue'),state=document.getElementById('probState'),text=document.getElementById('probText'),question=document.getElementById('probQuestion');
+    function updateProbability(){const p=+range.value;gauge.style.setProperty('--p',p);value.textContent=p+'%';if(p<60){state.textContent='NO EDGE';text.textContent='主觀條件仍接近五五波。此時最重要的不是找理由交易，而是繼續等資訊讓模型產生傾斜。';question.textContent='我現在真的有 edge，還是只是想做點什麼？';}else if(p<70){state.textContent='WATCH';text.textContent='開始出現偏向，但還不足以讓決策強迫自己進場。保留觀察名單，等待更清楚的風險報酬。';question.textContent='哪一個新增證據，才足以讓我從觀察變成下注？';}else if(p<82){state.textContent='SCALE IN';text.textContent='條件已經明顯偏向自己，但仍然保留錯誤空間。較適合用部分部位驗證，而不是把高勝率誤解成確定性。';question.textContent='如果這個判斷錯了，最早會在哪個條件上露出來？';}else{state.textContent='HIGH CONVICTION / RISK CHECK';text.textContent='主觀信心已經很高。現在新增部位之前，最重要的不是再找支持理由，而是強迫模型接受反證與部位風險檢查。';question.textContent='有沒有一個我正在忽略、但足以讓整個 thesis 失效的條件？';}}range.addEventListener('input',updateProbability);updateProbability();
+
+    const caseMeta={yageo:['001','國巨'],nikkei:['002','小日經'],spcx:['003','SPCX'],psmc:['004','力積電'],btc:['005','比特幣']};let activeCase='yageo';const fields=[...document.querySelectorAll('[data-field]')];const storageKey='desi-edge-lab-v2';let db={};try{db=JSON.parse(localStorage.getItem(storageKey)||'{}')}catch(e){db={}};
+    function loadCase(id){activeCase=id;document.querySelectorAll('.case-tab').forEach(b=>b.classList.toggle('active',b.dataset.case===id));document.getElementById('caseNumber').textContent=caseMeta[id][0];document.getElementById('caseTitle').textContent=caseMeta[id][1];fields.forEach(f=>f.value=(db[id]&&db[id][f.dataset.field])||'');document.getElementById('saveState').textContent='LOCAL / LOADED';}
+    function save(){db[activeCase]=db[activeCase]||{};fields.forEach(f=>db[activeCase][f.dataset.field]=f.value);localStorage.setItem(storageKey,JSON.stringify(db));const s=document.getElementById('saveState');s.textContent='SAVED / '+new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'});}
+    document.querySelectorAll('.case-tab').forEach(b=>b.addEventListener('click',()=>loadCase(b.dataset.case)));fields.forEach(f=>f.addEventListener('input',save));loadCase(activeCase);
+
+    const railLinks=[...document.querySelectorAll('.rail-nav a')],sections=[...document.querySelectorAll('.section')];const navIO=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){railLinks.forEach(a=>a.classList.toggle('active',a.getAttribute('href')==='#'+e.target.id));}}),{rootMargin:'-35% 0px -55% 0px',threshold:0});sections.forEach(s=>navIO.observe(s));
+    const doPrint=()=>window.print();document.getElementById('printTop').addEventListener('click',doPrint);document.getElementById('printBottom').addEventListener('click',doPrint);
+  </script>
+</body>
+</html>
